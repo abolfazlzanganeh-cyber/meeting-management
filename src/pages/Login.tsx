@@ -16,8 +16,6 @@ export function Login() {
     setError('');
     setLoading(true);
 
-    console.log('🔵 تلاش برای لاگین با ایمیل:', email);
-
     try {
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
@@ -25,16 +23,17 @@ export function Login() {
       });
 
       if (authError) {
-        console.error('🔴 خطای سوپابیس:', authError.message);
-        throw authError;
+        console.error('خطای لاگین:', authError.message);
+        setError('ایمیل یا رمز عبور اشتباه است');
+        return;
       }
 
-      if (authData.user) {
-        console.log('🟢 لاگین موفق! کاربر:', authData.user.email);
+      if (authData?.user) {
+        console.log('لاگین موفق:', authData.user.email);
         navigate('/');
       }
-    } catch (err: any) {
-      setError('ایمیل یا رمز عبور اشتباه است');
+    } catch (err) {
+      setError('خطای غیرمنتظره در ورود');
     } finally {
       setLoading(false);
     }
@@ -57,7 +56,6 @@ export function Login() {
               onChange={(e) => setEmail(e.target.value)} 
               placeholder="admin@company.com" 
               required 
-              icon={<Mail className="w-4 h-4" />} 
             />
             <Input 
               label="رمز عبور" 
@@ -66,7 +64,6 @@ export function Login() {
               onChange={(e) => setPassword(e.target.value)} 
               placeholder="••••••••" 
               required 
-              icon={<Lock className="w-4 h-4" />} 
             />
             
             {error && (
@@ -82,7 +79,7 @@ export function Login() {
           </form>
 
           <div className="mt-6 p-4 bg-blue-50 rounded-lg text-xs text-blue-800 text-center">
-            <p className="font-semibold mb-1">فقط با ایمیل سازمانی وارد شوید:</p>
+            <p className="font-semibold mb-1">اطلاعات ورود آزمایشی:</p>
             <p>admin@company.com / admin123</p>
           </div>
         </CardContent>
