@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
-import { Button, Input, Card, CardContent } from '@/components/ui';
-import { ClipboardList, AlertCircle } from 'lucide-react';
 
 export function Login() {
   const [username, setUsername] = useState('');
@@ -14,9 +12,8 @@ export function Login() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
-    const success = login(username.trim(), password);
     
+    const success = login(username.trim(), password);
     if (success) {
       navigate('/');
     } else {
@@ -25,55 +22,53 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-      <Card className="w-full max-w-md">
-        <CardContent className="pt-6">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <ClipboardList className="w-8 h-8 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-slate-900">سامانه مدیریت جلسات</h1>
-            <p className="text-slate-500 mt-2">لطفاً برای ورود اطلاعات خود را وارد کنید</p>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f8fafc', fontFamily: 'Tahoma, Arial, sans-serif', direction: 'rtl' }}>
+      <form onSubmit={handleSubmit} style={{ padding: '2rem', backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', width: '100%', maxWidth: '400px' }}>
+        <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', color: '#1e293b', fontSize: '1.5rem', fontWeight: 'bold' }}>سامانه مدیریت جلسات</h2>
+        
+        {error && (
+          <div style={{ padding: '0.75rem', backgroundColor: '#fef2f2', color: '#dc2626', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.875rem' }}>
+            {error}
           </div>
+        )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="flex items-center gap-2 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
-                <AlertCircle className="w-4 h-4" />
-                {error}
-              </div>
-            )}
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{ display: 'block', marginBottom: '0.5rem', color: '#475569', fontSize: '0.875rem' }}>نام کاربری</label>
+          <input 
+            type="text" 
+            value={username} 
+            onChange={(e) => setUsername(e.target.value)} 
+            placeholder="admin"
+            style={{ width: '100%', padding: '0.75rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '1rem', boxSizing: 'border-box' }} 
+            required 
+          />
+        </div>
 
-            <Input
-              label="نام کاربری"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="مثال: admin"
-              required
-            />
+        <div style={{ marginBottom: '1.5rem' }}>
+          <label style={{ display: 'block', marginBottom: '0.5rem', color: '#475569', fontSize: '0.875rem' }}>رمز عبور</label>
+          <input 
+            type="password" 
+            value={password} 
+            onChange={(e) => setPassword(e.target.value)} 
+            placeholder="admin123"
+            style={{ width: '100%', padding: '0.75rem', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '1rem', boxSizing: 'border-box' }} 
+            required 
+          />
+        </div>
 
-            <Input
-              label="رمز عبور"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-            />
+        <button 
+          type="submit" 
+          style={{ width: '100%', padding: '0.75rem', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '8px', fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer' }}
+        >
+          ورود به سامانه
+        </button>
 
-            <Button type="submit" className="w-full py-6 text-lg font-semibold">
-              ورود به سامانه
-            </Button>
-          </form>
-
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg text-xs text-blue-800 space-y-1">
-            <p className="font-semibold">🔑 اطلاعات ورود مدیر سیستم:</p>
-            <p>نام کاربری: <code className="bg-white px-1 rounded font-mono">admin</code></p>
-            <p>رمز عبور: <code className="bg-white px-1 rounded font-mono">admin123</code></p>
-          </div>
-        </CardContent>
-      </Card>
+        <div style={{ marginTop: '1.5rem', padding: '1rem', backgroundColor: '#eff6ff', borderRadius: '8px', fontSize: '0.875rem', color: '#1e40af' }}>
+          <p style={{ margin: '0 0 0.5rem 0', fontWeight: 'bold' }}>🔑 اطلاعات ورود تست:</p>
+          <p style={{ margin: 0 }}>نام کاربری: <code style={{ backgroundColor: 'white', padding: '2px 4px', borderRadius: '4px' }}>admin</code></p>
+          <p style={{ margin: '0.5rem 0 0 0' }}>رمز عبور: <code style={{ backgroundColor: 'white', padding: '2px 4px', borderRadius: '4px' }}>admin123</code></p>
+        </div>
+      </form>
     </div>
   );
 }
