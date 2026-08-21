@@ -34,11 +34,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const init = async () => {
       await storage.loadAllData();
+      
       if (storage.getUsers().length === 0) {
         await seedDatabase();
         await storage.loadAllData();
       }
-      setCurrentUser(storage.getCurrentUser());
+
+      const savedUser = storage.getCurrentUser();
+      // بررسی اعتبار یوزر ذخیره شده
+      const isValidUser = savedUser && storage.getUsers().find(u => u.id === savedUser.id && u.isActive);
+
+      if (isValidUser) {
+        setCurrentUser(isValidUser);
+      } else {
+        storage.clearCurrentUser();
+        setCurrentUser(null);
+      }
+
       setUsers(storage.getUsers() || []);
       setDepartments(storage.getDepartments() || []);
       setMeetingTypes(storage.getMeetingTypes() || []);
