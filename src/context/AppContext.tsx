@@ -34,15 +34,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const init = async () => {
       try {
+        console.log('🟢 مرحله ۱: شروع loadAllData');
         await storage.loadAllData();
         
         if (storage.getUsers().length === 0) {
+          console.log('🟢 مرحله ۲: دیتابیس خالی است، شروع seedDatabase');
           await seedDatabase();
+          console.log('🟢 مرحله ۳: بارگذاری مجدد داده‌ها بعد از seed');
           await storage.loadAllData();
         }
 
-        const savedUser = storage.getCurrentUser();
-        const isValidUser = savedUser && storage.getUsers().find(u => u.id === savedUser.id && u.isActive);
+        let savedUser: User | null = null;
+        try {
+          savedUser = storage.getCurrentUser();
+        } catch (e) {
+          console.warn('خطا در خواندن یوزر ذخیره شده:', e);
+          savedUser = null;
+        }
+
+        const allUsers = storage.getUsers() || [];
+        const isValidUser = savedUser && allUsers.find(u => u.id === savedUser.id && u.isActive);
 
         if (isValidUser) {
           setCurrentUser(isValidUser);
@@ -51,24 +62,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setCurrentUser(null);
         }
 
-        setUsers(storage.getUsers() || []);
+        setUsers(allUsers);
         setDepartments(storage.getDepartments() || []);
         setMeetingTypes(storage.getMeetingTypes() || []);
         setMeetings(storage.getMeetings() || []);
         setAttendees(storage.getAttendees() || []);
         setResolutions(storage.getResolutions() || []);
         setNotifications(storage.getNotifications() || []);
+        
+        console.log('🚀 موفقیت: تنظیم loaded به true');
       } catch (error) {
-        console.error('❌ Init error:', error);
+        console.error('❌ خطای بحرانی در init:', error);
       } finally {
+        // تضمین می‌کنیم که تحت هر شرایطی (حتی در صورت خطا) لودینگ تمام شود
         setLoaded(true);
       }
     };
+    
     init();
   }, []);
 
   const login = (username: string, password: string): boolean => {
-    const user = storage.getUsers().find(u => u.username === username && u.password === password && u.isActive);
+    const allUsers = storage.getUsers() || [];
+    const user = allUsers.find(u => u.username === username && u.password === password && u.isActive);
     if (user) {
       storage.setCurrentUser(user);
       setCurrentUser(user);
