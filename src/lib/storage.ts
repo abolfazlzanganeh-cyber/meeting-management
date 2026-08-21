@@ -1,6 +1,5 @@
 import type { User, Department, MeetingType, Meeting, Attendee, Resolution, Notification, SystemSettings, AuditEntry } from '@/types';
 
-// کش محلی
 let cache = {
   users: [] as User[],
   departments: [] as Department[],
@@ -12,7 +11,6 @@ let cache = {
   auditLog: [] as AuditEntry[],
 };
 
-// بارگذاری از localStorage
 export async function loadAllData() {
   try {
     cache.users = JSON.parse(localStorage.getItem('mms_users') || '[]');
@@ -29,7 +27,6 @@ export async function loadAllData() {
   }
 }
 
-// ذخیره در localStorage
 function saveToStorage(key: string, data: any[]) {
   try {
     localStorage.setItem(key, JSON.stringify(data));
