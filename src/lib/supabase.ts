@@ -10,8 +10,11 @@ let connectionOk = false;
 export function getSupabase() {
   if (!supabaseClient) {
     try {
-      supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: { persistSession: false },
+      });
     } catch (e) {
+      console.warn('Supabase init failed, using localStorage only');
       return null;
     }
   }
@@ -20,16 +23,23 @@ export function getSupabase() {
 
 export async function testConnection(): Promise<boolean> {
   if (connectionTested) return connectionOk;
+  
   const client = getSupabase();
   if (!client) {
     connectionOk = false;
     connectionTested = true;
     return false;
   }
+  
   try {
     const { error } = await client.from('users').select('id').limit(1);
     connectionOk = !error;
     connectionTested = true;
+    if (connectionOk) {
+      console.log('✅ Supabase connected - cloud sync enabled');
+    } else {
+      console.warn('⚠️ Supabase connection failed, using localStorage');
+    }
     return connectionOk;
   } catch (e) {
     connectionOk = false;
@@ -40,6 +50,7 @@ export async function testConnection(): Promise<boolean> {
 
 export async function getAllFromTable(tableName: string): Promise<any[]> {
   const useCloud = await testConnection();
+  
   if (useCloud) {
     try {
       const client = getSupabase();
@@ -49,6 +60,7 @@ export async function getAllFromTable(tableName: string): Promise<any[]> {
       console.warn(`Cloud read failed for ${tableName}, using localStorage`);
     }
   }
+  
   try {
     const data = localStorage.getItem(`mms_${tableName}`);
     return data ? JSON.parse(data) : [];
@@ -59,11 +71,13 @@ export async function getAllFromTable(tableName: string): Promise<any[]> {
 
 export async function upsertToTable(tableName: string, rows: any[]): Promise<void> {
   if (!rows || rows.length === 0) return;
+  
   try {
     localStorage.setItem(`mms_${tableName}`, JSON.stringify(rows));
   } catch (e) {
     console.error('localStorage save failed:', e);
   }
+  
   if (connectionOk) {
     try {
       const client = getSupabase();
