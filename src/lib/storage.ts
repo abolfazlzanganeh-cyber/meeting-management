@@ -1,136 +1,80 @@
-import { supabase } from './supabase';
-import type { User, Department, MeetingType, Meeting, Attendee, Resolution, Notification } from './types';
+import type { User, Department, MeetingType, Meeting, Attendee, Resolution, Notification, SystemSettings, AuditEntry } from '@/types';
+import { getAllFromTable, upsertToTable } from './supabase';
 
-// فقط نشست کاربر محلی می‌ماند
-const LS_CURRENT_USER_KEY = 'current_user';
-
-// نگاشت کلیدهای قدیمی localStorage به جدول‌های Supabase (برای مهاجرت)
-const LS_TO_TABLE: Record<string, string> = {
-  app_users: 'users',
-  app_departments: 'departments',
-  app_meeting_types: 'meeting_types',
-  app_meetings: 'meetings',
-  app_attendees: 'attendees',
-  app_resolutions: 'resolutions',
-  app_notifications: 'notifications',
+let cache = {
+  users: [] as User[],
+  departments: [] as Department[],
+  meetingTypes: [] as MeetingType[],
+  meetings: [] as Meeting[],
+  attendees: [] as Attendee[],
+  resolutions: [] as Resolution[],
+  notifications: [] as Notification[],
+  auditLog: [] as AuditEntry[],
 };
 
-interface AppData {
-  users: User[];
-  departments: Department[];
-  meetingTypes: MeetingType[];
-  meetings: Meeting[];
-  attendees: Attendee[];
-  resolutions: Resolution[];
-  notifications: Notification[];
-}
-
-let appData: AppData = {
-  users: [], departments: [], meetingTypes: [],
-  meetings: [], attendees: [], resolutions: [], notifications: [],
-};
-
-// ---------- توابع پایه Supabase ----------
-async function fetchTable<T>(table: string): Promise<T[]> {
-  const { data, error } = await supabase.from(table).select('data');
-  if (error) { console.error(`fetchTable(${table}):`, error.message); return []; }
-  return (data ?? []).map((row: { data: T }) => row.data);
-}
-
-async function upsertRow<T extends { id: string }>(table: string, item: T): Promise<void> {
-  const { error } = await supabase.from(table).upsert({ id: item.id, data: item });
-  if (error) console.error(`upsertRow(${table}):`, error.message);
-}
-
-async function deleteRow(table: string, id: string): Promise<void> {
-  const { error } = await supabase.from(table).delete().eq('id', id);
-  if (error) console.error(`deleteRow(${table}):`, error.message);
-}
-
-// ---------- بارگذاری اولیه ----------
-export async function loadAllData(): Promise<void> {
-  const [users, departments, meetingTypes, meetings, attendees, resolutions, notifications] =
-    await Promise.all([
-      fetchTable<User>('users'),
-      fetchTable<Department>('departments'),
-      fetchTable<MeetingType>('meeting_types'),
-      fetchTable<Meeting>('meetings'),
-      fetchTable<Attendee>('attendees'),
-      fetchTable<Resolution>('resolutions'),
-      fetchTable<Notification>('notifications'),
+export async function loadAllData() {
+  try {
+    const [users, departments, meetingTypes, meetings, attendees, resolutions, notifications, auditLog] = await Promise.all([
+      getAllFromTable('users'),
+      getAllFromTable('departments'),
+      getAllFromTable('meeting_types'),
+      getAllFromTable('meetings'),
+      getAllFromTable('attendees'),
+      getAllFromTable('resolutions'),
+      getAllFromTable('notifications'),
+      getAllFromTable('audit_log'),
     ]);
-  appData = { users, departments, meetingTypes, meetings, attendees, resolutions, notifications };
-}
-
-// ---------- مهاجرت یک‌باره از localStorage ----------
-export async function migrateFromLocalStorage(): Promise<void> {
-  if (localStorage.getItem('supabase_migrated') === 'yes') return;
-  for (const [lsKey, table] of Object.entries(LS_TO_TABLE)) {
-    const raw = localStorage.getItem(lsKey);
-    if (!raw) continue;
-    try {
-      const items: { id: string }[] = JSON.parse(raw);
-      if (items.length) {
-        const rows = items.map(it => ({ id: it.id, data: it }));
-        const { error } = await supabase.from(table).upsert(rows);
-        if (error) { console.error(`migrate(${table}):`, error.message); return; }
-      }
-    } catch (e) { console.error(`migrate parse(${lsKey}):`, e); }
+    
+    cache.users = users || [];
+    cache.departments = departments || [];
+    cache.meetingTypes = meetingTypes || [];
+    cache.meetings = meetings || [];
+    cache.attendees = attendees || [];
+    cache.resolutions = resolutions || [];
+    cache.notifications = notifications || [];
+    cache.auditLog = auditLog || [];
+    
+    console.log('✅ Data loaded:', cache.users.length, 'users,', cache.meetings.length, 'meetings');
+  } catch (error) {
+    console.error('❌ Load error:', error);
   }
-  localStorage.setItem('supabase_migrated', 'yes');
 }
 
-// ---------- نشست کاربر (محلی می‌ماند) ----------
-export function getCurrentUser(): User | null {
-  const raw = localStorage.getItem(LS_CURRENT_USER_KEY);
-  return raw ? JSON.parse(raw) : null;
-}
-export function setCurrentUser(user: User) { localStorage.setItem(LS_CURRENT_USER_KEY, JSON.stringify(user)); }
-export function clearCurrentUser() { localStorage.removeItem(LS_CURRENT_USER_KEY); }
+export const getUsers = (): User[] => cache.users || [];
+export const setUsers = (users: User[]) => { cache.users = users || []; upsertToTable('users', users); };
 
-// ---------- Getters (همگام، از کش حافظه) ----------
-export function getUsers(): User[] { return appData.users; }
-export function getDepartments(): Department[] { return appData.departments; }
-export function getMeetingTypes(): MeetingType[] { return appData.meetingTypes; }
-export function getMeetings(): Meeting[] { return appData.meetings; }
-export function getAttendees(): Attendee[] { return appData.attendees; }
-export function getResolutions(): Resolution[] { return appData.resolutions; }
-export function getNotifications(): Notification[] { return appData.notifications; }
+export const getDepartments = (): Department[] => cache.departments || [];
+export const setDepartments = (deps: Department[]) => { cache.departments = deps || []; upsertToTable('departments', deps); };
 
-// ---------- کمکی‌های داخلی ----------
-function upsertLocal<T extends { id: string }>(items: T[], item: T): T[] {
-  const i = items.findIndex(x => x.id === item.id);
-  if (i !== -1) items[i] = item; else items.push(item);
-  return [...items];
-}
+export const getMeetingTypes = (): MeetingType[] => cache.meetingTypes || [];
+export const setMeetingTypes = (types: MeetingType[]) => { cache.meetingTypes = types || []; upsertToTable('meeting_types', types); };
 
-// ---------- Mutators (async) ----------
-export async function addMeeting(m: Meeting) { appData.meetings = upsertLocal(appData.meetings, m); await upsertRow('meetings', m); }
-export async function updateMeeting(m: Meeting) { appData.meetings = upsertLocal(appData.meetings, m); await upsertRow('meetings', m); }
-export async function deleteMeeting(id: string) { appData.meetings = appData.meetings.filter(x => x.id !== id); await deleteRow('meetings', id); }
+export const getMeetings = (): Meeting[] => cache.meetings || [];
+export const setMeetings = (meetings: Meeting[]) => { cache.meetings = meetings || []; upsertToTable('meetings', meetings); };
 
-export async function addResolution(r: Resolution) { appData.resolutions = upsertLocal(appData.resolutions, r); await upsertRow('resolutions', r); }
-export async function updateResolution(r: Resolution) { appData.resolutions = upsertLocal(appData.resolutions, r); await upsertRow('resolutions', r); }
-export async function deleteResolution(id: string) { appData.resolutions = appData.resolutions.filter(x => x.id !== id); await deleteRow('resolutions', id); }
+export const getAttendees = (): Attendee[] => cache.attendees || [];
+export const setAttendees = (attendees: Attendee[]) => { cache.attendees = attendees || []; upsertToTable('attendees', attendees); };
 
-export async function addNotification(n: Notification) { appData.notifications = upsertLocal(appData.notifications, n); await upsertRow('notifications', n); }
-export async function markNotificationRead(id: string) {
-  const n = appData.notifications.find(x => x.id === id);
-  if (n) { n.isRead = true; appData.notifications = upsertLocal(appData.notifications, n); await upsertRow('notifications', n); }
-}
+export const getResolutions = (): Resolution[] => cache.resolutions || [];
+export const setResolutions = (resolutions: Resolution[]) => { cache.resolutions = resolutions || []; upsertToTable('resolutions', resolutions); };
 
-export async function addUser(u: User) { appData.users = upsertLocal(appData.users, u); await upsertRow('users', u); }
-export async function updateUser(u: User) { appData.users = upsertLocal(appData.users, u); await upsertRow('users', u); }
-export async function deleteUser(id: string) { appData.users = appData.users.filter(x => x.id !== id); await deleteRow('users', id); }
+export const getNotifications = (): Notification[] => cache.notifications || [];
+export const setNotifications = (notifications: Notification[]) => { cache.notifications = notifications || []; upsertToTable('notifications', notifications); };
 
-export async function addDepartment(d: Department) { appData.departments = upsertLocal(appData.departments, d); await upsertRow('departments', d); }
-export async function updateDepartment(d: Department) { appData.departments = upsertLocal(appData.departments, d); await upsertRow('departments', d); }
-export async function deleteDepartment(id: string) { appData.departments = appData.departments.filter(x => x.id !== id); await deleteRow('departments', id); }
+export const getAuditLog = (): AuditEntry[] => cache.auditLog || [];
+export const setAuditLog = (entries: AuditEntry[]) => { cache.auditLog = entries || []; upsertToTable('audit_log', entries); };
 
-export async function addMeetingType(mt: MeetingType) { appData.meetingTypes = upsertLocal(appData.meetingTypes, mt); await upsertRow('meeting_types', mt); }
-export async function updateMeetingType(mt: MeetingType) { appData.meetingTypes = upsertLocal(appData.meetingTypes, mt); await upsertRow('meeting_types', mt); }
-export async function deleteMeetingType(id: string) { appData.meetingTypes = appData.meetingTypes.filter(x => x.id !== id); await deleteRow('meeting_types', id); }
+const SETTINGS_KEY = 'mms_settings';
+const DEFAULT_SETTINGS: SystemSettings = { meetingCodePrefix: 'MTG', resolutionCodePrefix: 'RES', maxFileSize: 10, allowedFileTypes: ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'png', 'zip'], reminderDays: [7, 3, 1, 0], overdueWarningDays: 3, overdueCriticalDays: 7 };
+export const getSettings = (): SystemSettings => { try { const data = localStorage.getItem(SETTINGS_KEY); return data ? JSON.parse(data) : DEFAULT_SETTINGS; } catch { return DEFAULT_SETTINGS; } };
+export const setSettings = (s: SystemSettings) => localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
 
-export async function addAttendee(a: Attendee) { appData.attendees = upsertLocal(appData.attendees, a); await upsertRow('attendees', a); }
-export async function updateAttendee(a: Attendee) { appData.attendees = upsertLocal(appData.attendees, a); await upsertRow('attendees', a); }
-export async function deleteAttendee(id: string) { appData.attendees = appData.attendees.filter(x => x.id !== id); await deleteRow('attendees', id); }
+const CU_KEY = 'mms_current_user';
+export const getCurrentUser = (): User | null => { try { const data = localStorage.getItem(CU_KEY); return data ? JSON.parse(data) : null; } catch { return null; } };
+export const setCurrentUser = (u: User | null) => { if (u) localStorage.setItem(CU_KEY, JSON.stringify(u)); else localStorage.removeItem(CU_KEY); };
+export const clearCurrentUser = () => localStorage.removeItem(CU_KEY);
+export const clearAll = () => { 
+  localStorage.removeItem(SETTINGS_KEY); 
+  localStorage.removeItem(CU_KEY);
+  cache = { users: [], departments: [], meetingTypes: [], meetings: [], attendees: [], resolutions: [], notifications: [], auditLog: [] }; 
+};
