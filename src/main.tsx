@@ -4,11 +4,11 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import './index.css';
 
-console.log('🏗 BUILD VERSION: v-final-stable |', new Date().toISOString());
+console.log('🏗 BUILD VERSION: v-ultimate-fix |', new Date().toISOString());
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <BrowserRouter>
       <App />
     </BrowserRouter>
   </React.StrictMode>

@@ -4,66 +4,34 @@ import { AppProvider, useApp } from '@/context/AppContext';
 import { Layout } from '@/components/layout/Layout';
 import { Login } from '@/pages/Login';
 import { Dashboard } from '@/pages/Dashboard';
-import { Meetings } from '@/pages/Meetings';
-import { MeetingDetail } from '@/pages/MeetingDetail';
-import { AllMinutes } from '@/pages/AllMinutes';
-import { Resolutions } from '@/pages/Resolutions';
-import { ResolutionDetail } from '@/pages/ResolutionDetail';
-import { MyResolutions } from '@/pages/MyResolutions';
-import { UsersPage } from '@/pages/Users';
-import { DepartmentsPage } from '@/pages/Departments';
-import { Reports } from '@/pages/Reports';
-import { Settings } from '@/pages/Settings';
+// سایر ایمپورت‌های صفحات را در صورت نیاز اضافه کنید
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function AppContent() {
   const { currentUser, loaded } = useApp();
-  
+
+  // ۱. اگر هنوز در حال لود است، اسپینر را نشان بده (با متن برای اطمینان)
   if (!loaded) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f8fafc' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f8fafc', fontFamily: 'Tahoma' }}>
         <div style={{ width: '48px', height: '48px', borderRadius: '50%', border: '4px solid #e2e8f0', borderTopColor: '#2563eb', animation: 'spin 1s linear infinite' }}></div>
+        <p style={{ marginRight: '1rem', color: '#64748b' }}>در حال بارگذاری داده‌ها...</p>
       </div>
     );
   }
-  
-  if (!currentUser) return <Navigate to="/login" replace />;
-  return <>{children}</>;
-}
 
-function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { currentUser, loaded } = useApp();
-  
-  if (!loaded) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f8fafc' }}>
-        <div style={{ width: '48px', height: '48px', borderRadius: '50%', border: '4px solid #e2e8f0', borderTopColor: '#2563eb', animation: 'spin 1s linear infinite' }}></div>
-      </div>
-    );
+  // ۲. اگر لود شده ولی کاربری لاگین نکرده، مستقیماً Login را نشان بده (بدون ریدایرکت روتر)
+  if (!currentUser) {
+    return <Login />;
   }
-  
-  if (currentUser) return <Navigate to="/" replace />;
-  return <>{children}</>;
-}
 
-function AppRoutes() {
+  // ۳. اگر لود شده و کاربر لاگین کرده، برنامه اصلی را نشان بده
   return (
     <Routes>
-      <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-      <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+      <Route path="/" element={<Layout />}>
         <Route index element={<Dashboard />} />
-        <Route path="meetings" element={<Meetings />} />
-        <Route path="meetings/:id" element={<MeetingDetail />} />
-        <Route path="all-minutes" element={<AllMinutes />} />
-        <Route path="resolutions" element={<Resolutions />} />
-        <Route path="resolutions/:filter" element={<Resolutions />} />
-        <Route path="resolutions/detail/:id" element={<ResolutionDetail />} />
-        <Route path="my-resolutions" element={<MyResolutions />} />
-        <Route path="reports" element={<Reports />} />
-        <Route path="users" element={<UsersPage />} />
-        <Route path="departments" element={<DepartmentsPage />} />
-        <Route path="settings" element={<Settings />} />
+        {/* سایر مسیرها را می‌توانید اینجا اضافه کنید */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
@@ -71,7 +39,7 @@ function AppRoutes() {
 export default function App() {
   return (
     <AppProvider>
-      <AppRoutes />
+      <AppContent />
     </AppProvider>
   );
 }
