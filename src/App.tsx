@@ -4,34 +4,48 @@ import { AppProvider, useApp } from '@/context/AppContext';
 import { Layout } from '@/components/layout/Layout';
 import { Login } from '@/pages/Login';
 import { Dashboard } from '@/pages/Dashboard';
-// سایر ایمپورت‌های صفحات را در صورت نیاز اضافه کنید
+import { Meetings } from '@/pages/Meetings';
+import { MeetingDetail } from '@/pages/MeetingDetail';
+import { AllMinutes } from '@/pages/AllMinutes';
+import { Resolutions } from '@/pages/Resolutions';
+import { ResolutionDetail } from '@/pages/ResolutionDetail';
+import { MyResolutions } from '@/pages/MyResolutions';
+import { UsersPage } from '@/pages/Users';
+import { DepartmentsPage } from '@/pages/Departments';
+import { Reports } from '@/pages/Reports';
+import { Settings } from '@/pages/Settings';
 
 function AppContent() {
   const { currentUser, loaded } = useApp();
 
-  // ۱. اگر هنوز در حال لود است، اسپینر را نشان بده (با متن برای اطمینان)
+  // ۱. اگر هنوز لود نشده، یک پیام متنی ساده نشان بده (نه اسپینر CSS که ممکن است لود نشود)
   if (!loaded) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f8fafc', fontFamily: 'Tahoma' }}>
-        <div style={{ width: '48px', height: '48px', borderRadius: '50%', border: '4px solid #e2e8f0', borderTopColor: '#2563eb', animation: 'spin 1s linear infinite' }}></div>
-        <p style={{ marginRight: '1rem', color: '#64748b' }}>در حال بارگذاری داده‌ها...</p>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f8fafc', fontFamily: 'Tahoma', fontSize: '18px', color: '#334155' }}>
+        در حال اتصال به سرور و بارگذاری داده‌ها...
       </div>
     );
   }
 
-  // ۲. اگر لود شده ولی کاربری لاگین نکرده، مستقیماً Login را نشان بده (بدون ریدایرکت روتر)
-  if (!currentUser) {
-    return <Login />;
-  }
-
-  // ۳. اگر لود شده و کاربر لاگین کرده، برنامه اصلی را نشان بده
+  // ۲. روتر ساده بدون کامپوننت‌های پیچیده Protected/Public
   return (
     <Routes>
-      <Route path="/" element={<Layout />}>
+      <Route path="/login" element={<Login />} />
+      <Route path="/" element={currentUser ? <Layout /> : <Navigate to="/login" replace />} >
         <Route index element={<Dashboard />} />
-        {/* سایر مسیرها را می‌توانید اینجا اضافه کنید */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="meetings" element={<Meetings />} />
+        <Route path="meetings/:id" element={<MeetingDetail />} />
+        <Route path="all-minutes" element={<AllMinutes />} />
+        <Route path="resolutions" element={<Resolutions />} />
+        <Route path="resolutions/:filter" element={<Resolutions />} />
+        <Route path="resolutions/detail/:id" element={<ResolutionDetail />} />
+        <Route path="my-resolutions" element={<MyResolutions />} />
+        <Route path="reports" element={<Reports />} />
+        <Route path="users" element={<UsersPage />} />
+        <Route path="departments" element={<DepartmentsPage />} />
+        <Route path="settings" element={<Settings />} />
       </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
