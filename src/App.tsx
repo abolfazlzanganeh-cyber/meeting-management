@@ -15,23 +15,41 @@ import { DepartmentsPage } from '@/pages/Departments';
 import { Reports } from '@/pages/Reports';
 import { Settings } from '@/pages/Settings';
 
-function AppContent() {
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { currentUser, loaded } = useApp();
-
-  // ۱. اگر هنوز لود نشده، یک پیام متنی ساده نشان بده (نه اسپینر CSS که ممکن است لود نشود)
+  
   if (!loaded) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f8fafc', fontFamily: 'Tahoma', fontSize: '18px', color: '#334155' }}>
-        در حال اتصال به سرور و بارگذاری داده‌ها...
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f8fafc' }}>
+        <div style={{ width: '48px', height: '48px', borderRadius: '50%', border: '4px solid #e2e8f0', borderTopColor: '#2563eb', animation: 'spin 1s linear infinite' }}></div>
       </div>
     );
   }
+  
+  if (!currentUser) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+}
 
-  // ۲. روتر ساده بدون کامپوننت‌های پیچیده Protected/Public
+function PublicRoute({ children }: { children: React.ReactNode }) {
+  const { currentUser, loaded } = useApp();
+  
+  if (!loaded) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f8fafc' }}>
+        <div style={{ width: '48px', height: '48px', borderRadius: '50%', border: '4px solid #e2e8f0', borderTopColor: '#2563eb', animation: 'spin 1s linear infinite' }}></div>
+      </div>
+    );
+  }
+  
+  if (currentUser) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
+
+function AppRoutes() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/" element={currentUser ? <Layout /> : <Navigate to="/login" replace />} >
+      <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+      <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<Dashboard />} />
         <Route path="meetings" element={<Meetings />} />
         <Route path="meetings/:id" element={<MeetingDetail />} />
@@ -53,7 +71,7 @@ function AppContent() {
 export default function App() {
   return (
     <AppProvider>
-      <AppContent />
+      <AppRoutes />
     </AppProvider>
   );
 }
