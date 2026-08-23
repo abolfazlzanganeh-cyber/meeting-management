@@ -16,14 +16,10 @@ import { Reports } from '@/pages/Reports';
 import { Settings } from '@/pages/Settings';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { currentUser, loaded } = useApp();
+  const { currentUser, loaded } = useApp(); // <-- اضافه شدن loaded
   
   if (!loaded) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f8fafc' }}>
-        <div style={{ width: '48px', height: '48px', borderRadius: '50%', border: '4px solid #e2e8f0', borderTopColor: '#2563eb', animation: 'spin 1s linear infinite' }}></div>
-      </div>
-    );
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>در حال بارگذاری...</div>;
   }
   
   if (!currentUser) return <Navigate to="/login" replace />;
@@ -31,14 +27,10 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { currentUser, loaded } = useApp();
+  const { currentUser, loaded } = useApp(); // <-- اضافه شدن loaded
   
   if (!loaded) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f8fafc' }}>
-        <div style={{ width: '48px', height: '48px', borderRadius: '50%', border: '4px solid #e2e8f0', borderTopColor: '#2563eb', animation: 'spin 1s linear infinite' }}></div>
-      </div>
-    );
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>در حال بارگذاری...</div>;
   }
   
   if (currentUser) return <Navigate to="/" replace />;
