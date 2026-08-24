@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
 
 export function Login() {
@@ -7,7 +6,6 @@ export function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { login } = useApp();
-  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -15,7 +13,7 @@ export function Login() {
     
     const success = login(username.trim(), password);
     if (success) {
-      navigate('/');
+      window.location.href = '/';
     } else {
       setError('نام کاربری یا رمز عبور اشتباه است.');
     }

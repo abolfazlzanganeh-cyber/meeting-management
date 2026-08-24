@@ -5,21 +5,22 @@ import { Login } from '@/pages/Login';
 function AppContent() {
   const { currentUser, loaded } = useApp();
 
-  // ۱. اگر هنوز لود نشده، یک متن ساده نشان بده
+  console.log('📊 AppContent render - loaded:', loaded, 'currentUser:', currentUser?.username);
+
   if (!loaded) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f8fafc', fontFamily: 'Tahoma', fontSize: '18px', color: '#334155' }}>
-        در حال اتصال به سرور و بارگذاری داده‌ها...
+        در حال بارگذاری داده‌ها...
       </div>
     );
   }
 
-  // ۲. اگر لود شده ولی کاربری نیست، مستقیماً کامپوننت Login را رندر کن (بدون هیچ روتری)
   if (!currentUser) {
+    console.log('🟢 نمایش فرم لاگین');
     return <Login />;
   }
 
-  // ۳. اگر کاربر لاگین کرده، یک پیام موفقیت ساده نشان بده (بعداً Layout را اینجا برمی‌گردانیم)
+  console.log('🟢 کاربر لاگین کرده:', currentUser.username);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', fontFamily: 'Tahoma' }}>
       <h1 style={{ color: '#16a34a' }}>✅ ورود موفقیت‌آمیز!</h1>
