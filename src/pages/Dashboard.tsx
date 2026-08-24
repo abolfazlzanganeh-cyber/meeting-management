@@ -1,9 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
-import { Card, CardContent, CardHeader, CardTitle, Badge } from '@/components/ui';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { toPersianNumber } from '@/lib/utils';
-import { toJalali, todayJalali } from '@/lib/date';
+import { todayJalali } from '@/lib/date';
 import {
   Calendar, CheckSquare, Clock, AlertTriangle, CheckCircle2,
   TrendingUp, BarChart3, Target
@@ -15,21 +15,27 @@ export function Dashboard() {
   const navigate = useNavigate();
   const today = todayJalali();
 
-  const totalMeetings = meetings.filter(m => !m.isArchived).length;
-  const currentMonthMeetings = meetings.filter(m => {
+  // ✅ اصلاح: اضافه کردن || [] برای تمام آرایه‌ها
+  const safeMeetings = meetings || [];
+  const safeResolutions = resolutions || [];
+  const safeDepartments = departments || [];
+
+  const totalMeetings = safeMeetings.filter(m => !m.isArchived).length;
+  const currentMonthMeetings = safeMeetings.filter(m => {
     const mMonth = m.date.substring(0, 7);
     const tMonth = today.substring(0, 7);
     return mMonth === tMonth;
   }).length;
-  const futureMeetings = meetings.filter(m => m.date >= today && m.status === 'scheduled').length;
+  const futureMeetings = safeMeetings.filter(m => m.date >= today && m.status === 'scheduled').length;
   
-  const activeResolutions = resolutions.filter(r => !r.isArchived);
+  const activeResolutions = safeResolutions.filter(r => !r.isArchived);
   const totalResolutions = activeResolutions.length;
   const pendingResolutions = activeResolutions.filter(r => r.status === 'pending').length;
   const inProgressResolutions = activeResolutions.filter(r => r.status === 'in_progress').length;
   const overdueResolutions = activeResolutions.filter(r => r.status === 'overdue').length;
   const completedResolutions = activeResolutions.filter(r => r.status === 'completed').length;
   const needsApprovalResolutions = activeResolutions.filter(r => r.status === 'needs_approval').length;
+  
   const avgProgress = activeResolutions.length > 0
     ? Math.round(activeResolutions.reduce((sum, r) => sum + r.progress, 0) / activeResolutions.length)
     : 0;
@@ -55,7 +61,7 @@ export function Dashboard() {
     { name: 'نیازمند تأیید', value: needsApprovalResolutions, color: '#f59e0b' },
   ].filter(d => d.value > 0);
 
-  const deptData = departments.map(d => {
+  const deptData = safeDepartments.map(d => {
     const deptRes = activeResolutions.filter(r => r.departmentId === d.id);
     return {
       name: d.name,

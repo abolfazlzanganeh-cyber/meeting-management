@@ -33,7 +33,10 @@ const menuItems = [
 
 export function Sidebar() {
   const { currentUser, logout, notifications } = useApp();
+  
+  // ✅ اصلاح: اضافه کردن || []
   const unreadCount = (notifications || []).filter(n => !n.isRead && n.userId === currentUser?.id).length;
+
   const hasAccess = (roles?: string[]) => {
     if (!roles) return true;
     return currentUser && roles.includes(currentUser.role);
@@ -77,6 +80,7 @@ export function Sidebar() {
               </div>
             );
           }
+
           return (
             <NavLink
               key={idx}

@@ -11,7 +11,8 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
   const notifRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  const userNotifs = notifications.filter(n => n.userId === currentUser?.id);
+  // ✅ اصلاح: اضافه کردن || [] برای جلوگیری از خطا
+  const userNotifs = (notifications || []).filter(n => n.userId === currentUser?.id);
   const unreadCount = userNotifs.filter(n => !n.isRead).length;
 
   useEffect(() => {
@@ -43,7 +44,6 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
         <button onClick={onMenuClick} className="lg:hidden p-2 hover:bg-slate-100 rounded-lg">
           <Menu className="w-5 h-5" />
         </button>
-        
         <div className="relative max-w-md flex-1">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
@@ -55,12 +55,10 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
           />
         </div>
       </div>
-
       <div className="flex items-center gap-2">
         <button className="p-2 hover:bg-slate-100 rounded-lg" title="ایجاد جلسه جدید">
           <Plus className="w-5 h-5 text-slate-600" />
         </button>
-
         <div className="relative" ref={notifRef}>
           <button
             onClick={() => setShowNotifications(!showNotifications)}
@@ -73,7 +71,6 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
               </span>
             )}
           </button>
-
           {showNotifications && (
             <div className="absolute left-0 mt-2 w-96 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden animate-fade-in">
               <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
