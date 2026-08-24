@@ -1,17 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import type { User, Department, MeetingType, Meeting, Attendee, Resolution, Notification } from '@/types';
+import type { User } from '@/types';
 import * as storage from '@/lib/storage';
 import { seedDatabase } from '@/lib/seed';
 
 interface AppContextType {
   currentUser: User | null;
-  users: User[];
-  departments: Department[];
-  meetingTypes: MeetingType[];
-  meetings: Meeting[];
-  attendees: Attendee[];
-  resolutions: Resolution[];
-  notifications: Notification[];
+  loaded: boolean; // این خط حیاتی است
   login: (username: string, password: string) => boolean;
   logout: () => void;
 }
@@ -20,41 +14,26 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [meetingTypes, setMeetingTypes] = useState<MeetingType[]>([]);
-  const [meetings, setMeetings] = useState<Meeting[]>([]);
-  const [attendees, setAttendees] = useState<Attendee[]>([]);
-  const [resolutions, setResolutions] = useState<Resolution[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+    console.log('🔄 شروع بارگذاری اولیه...');
     const init = async () => {
       try {
         await storage.loadAllData();
-        
         if (storage.getUsers().length === 0) {
           await seedDatabase();
           await storage.loadAllData();
         }
-
+        
         const savedUser = storage.getCurrentUser();
         if (savedUser) {
           setCurrentUser(savedUser);
         }
-
-        setUsers(storage.getUsers());
-        setDepartments(storage.getDepartments());
-        setMeetingTypes(storage.getMeetingTypes());
-        setMeetings(storage.getMeetings());
-        setAttendees(storage.getAttendees());
-        setResolutions(storage.getResolutions());
-        setNotifications(storage.getNotifications());
-        
       } catch (error) {
-        console.error('❌ Init error:', error);
+        console.error('❌ خطا در بارگذاری:', error);
       } finally {
+        console.log('🏁 تنظیم loaded به مقدار TRUE');
         setLoaded(true);
       }
     };
@@ -76,11 +55,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setCurrentUser(null);
   };
 
+  console.log('📡 رندر AppProvider -> loaded:', loaded, 'currentUser:', currentUser?.username);
+
   return (
-    <AppContext.Provider value={{
-      currentUser, users, departments, meetingTypes, meetings, attendees, resolutions, notifications,
-      login, logout
-    }}>
+    <AppContext.Provider value={{ currentUser, loaded, login, logout }}>
       {children}
     </AppContext.Provider>
   );
