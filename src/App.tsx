@@ -15,39 +15,47 @@ import { DepartmentsPage } from '@/pages/Departments';
 import { Reports } from '@/pages/Reports';
 import { Settings } from '@/pages/Settings';
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { currentUser } = useApp();
-  if (!currentUser) return <Navigate to="/login" replace />;
-  return <>{children}</>;
-}
+function AppContent() {
+  const { currentUser, loaded } = useApp();
 
-function PublicRoute({ children }: { children: React.ReactNode }) {
-  const { currentUser } = useApp();
-  if (currentUser) return <Navigate to="/" replace />;
-  return <>{children}</>;
+  if (!loaded) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontFamily: 'Tahoma', fontSize: '18px' }}>
+        در حال بارگذاری...
+      </div>
+    );
+  }
+
+  if (!currentUser) {
+    return <Login />;
+  }
+
+  return (
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        <Route index element={<Dashboard />} />
+        <Route path="meetings" element={<Meetings />} />
+        <Route path="meetings/:id" element={<MeetingDetail />} />
+        <Route path="all-minutes" element={<AllMinutes />} />
+        <Route path="resolutions" element={<Resolutions />} />
+        <Route path="resolutions/:filter" element={<Resolutions />} />
+        <Route path="resolutions/detail/:id" element={<ResolutionDetail />} />
+        <Route path="my-resolutions" element={<MyResolutions />} />
+        <Route path="reports" element={<Reports />} />
+        <Route path="users" element={<UsersPage />} />
+        <Route path="departments" element={<DepartmentsPage />} />
+        <Route path="settings" element={<Settings />} />
+      </Route>
+      <Route path="/login" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
 }
 
 export default function App() {
   return (
     <AppProvider>
-      <Routes>
-        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-        <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-          <Route index element={<Dashboard />} />
-          <Route path="meetings" element={<Meetings />} />
-          <Route path="meetings/:id" element={<MeetingDetail />} />
-          <Route path="all-minutes" element={<AllMinutes />} />
-          <Route path="resolutions" element={<Resolutions />} />
-          <Route path="resolutions/:filter" element={<Resolutions />} />
-          <Route path="resolutions/detail/:id" element={<ResolutionDetail />} />
-          <Route path="my-resolutions" element={<MyResolutions />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="users" element={<UsersPage />} />
-          <Route path="departments" element={<DepartmentsPage />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <AppContent />
     </AppProvider>
   );
 }

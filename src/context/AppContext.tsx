@@ -5,7 +5,7 @@ import { seedDatabase } from '@/lib/seed';
 
 interface AppContextType {
   currentUser: User | null;
-  loaded: boolean; // این خط حیاتی است
+  loaded: boolean;
   login: (username: string, password: string) => boolean;
   logout: () => void;
 }
@@ -17,23 +17,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    console.log('🔄 شروع بارگذاری اولیه...');
     const init = async () => {
       try {
         await storage.loadAllData();
+        
         if (storage.getUsers().length === 0) {
           await seedDatabase();
           await storage.loadAllData();
         }
-        
+
+        // بررسی کاربر ذخیره شده
         const savedUser = storage.getCurrentUser();
         if (savedUser) {
           setCurrentUser(savedUser);
         }
       } catch (error) {
-        console.error('❌ خطا در بارگذاری:', error);
+        console.error('❌ Init error:', error);
       } finally {
-        console.log('🏁 تنظیم loaded به مقدار TRUE');
         setLoaded(true);
       }
     };
@@ -54,8 +54,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     storage.clearCurrentUser();
     setCurrentUser(null);
   };
-
-  console.log('📡 رندر AppProvider -> loaded:', loaded, 'currentUser:', currentUser?.username);
 
   return (
     <AppContext.Provider value={{ currentUser, loaded, login, logout }}>

@@ -13,6 +13,7 @@ export function Login() {
     
     const success = login(username.trim(), password);
     if (success) {
+      // استفاده از window.location به جای navigate برای اطمینان از رفرش کامل
       window.location.href = '/';
     } else {
       setError('نام کاربری یا رمز عبور اشتباه است.');
