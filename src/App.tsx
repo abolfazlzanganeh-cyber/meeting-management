@@ -1,47 +1,53 @@
 import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider, useApp } from '@/context/AppContext';
+import { Layout } from '@/components/layout/Layout';
 import { Login } from '@/pages/Login';
+import { Dashboard } from '@/pages/Dashboard';
+import { Meetings } from '@/pages/Meetings';
+import { MeetingDetail } from '@/pages/MeetingDetail';
+import { AllMinutes } from '@/pages/AllMinutes';
+import { Resolutions } from '@/pages/Resolutions';
+import { ResolutionDetail } from '@/pages/ResolutionDetail';
+import { MyResolutions } from '@/pages/MyResolutions';
+import { UsersPage } from '@/pages/Users';
+import { DepartmentsPage } from '@/pages/Departments';
+import { Reports } from '@/pages/Reports';
+import { Settings } from '@/pages/Settings';
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { currentUser } = useApp();
+  if (!currentUser) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+}
+
+function PublicRoute({ children }: { children: React.ReactNode }) {
+  const { currentUser } = useApp();
+  if (currentUser) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
 
 export default function App() {
   return (
     <AppProvider>
-      <AppContent />
+      <Routes>
+        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+        <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+          <Route index element={<Dashboard />} />
+          <Route path="meetings" element={<Meetings />} />
+          <Route path="meetings/:id" element={<MeetingDetail />} />
+          <Route path="all-minutes" element={<AllMinutes />} />
+          <Route path="resolutions" element={<Resolutions />} />
+          <Route path="resolutions/:filter" element={<Resolutions />} />
+          <Route path="resolutions/detail/:id" element={<ResolutionDetail />} />
+          <Route path="my-resolutions" element={<MyResolutions />} />
+          <Route path="reports" element={<Reports />} />
+          <Route path="users" element={<UsersPage />} />
+          <Route path="departments" element={<DepartmentsPage />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </AppProvider>
-  );
-}
-
-function AppContent() {
-  const { currentUser, loaded } = useApp();
-
-  console.log('🔍 بررسی AppContent -> loaded:', loaded, 'currentUser:', currentUser);
-
-  // ۱. اگر هنوز لود نشده، فقط این متن ساده را نشان بده
-  if (!loaded) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontFamily: 'Tahoma', fontSize: '18px', color: '#334155' }}>
-        در حال بارگذاری داده‌ها...
-      </div>
-    );
-  }
-
-  // ۲. اگر لود شده ولی کاربری نیست، مستقیماً فرم لاگین را نشان بده
-  if (!currentUser) {
-    console.log('✅ نمایش فرم لاگین');
-    return <Login />;
-  }
-
-  // ۳. اگر کاربر لاگین کرده، یک پیام ساده خوش‌آمدگویی نشان بده
-  console.log('🎉 کاربر لاگین کرده:', currentUser.username);
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', fontFamily: 'Tahoma' }}>
-      <h1 style={{ color: '#16a34a' }}>✅ ورود موفقیت‌آمیز!</h1>
-      <p>خوش آمدید، {currentUser.firstName} {currentUser.lastName}</p>
-      <button 
-        onClick={() => window.location.reload()}
-        style={{ marginTop: '1rem', padding: '0.5rem 1rem', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontFamily: 'Tahoma' }}
-      >
-        خروج از سیستم
-      </button>
-    </div>
   );
 }
