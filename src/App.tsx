@@ -1,37 +1,55 @@
 import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider, useApp } from '@/context/AppContext';
+import { Layout } from '@/components/layout/Layout';
 import { Login } from '@/pages/Login';
+import { Dashboard } from '@/pages/Dashboard';
+import { Meetings } from '@/pages/Meetings';
+import { MeetingDetail } from '@/pages/MeetingDetail';
+import { AllMinutes } from '@/pages/AllMinutes';
+import { Resolutions } from '@/pages/Resolutions';
+import { ResolutionDetail } from '@/pages/ResolutionDetail';
+import { MyResolutions } from '@/pages/MyResolutions';
+import { UsersPage } from '@/pages/Users';
+import { DepartmentsPage } from '@/pages/Departments';
+import { Reports } from '@/pages/Reports';
+import { Settings } from '@/pages/Settings';
 
 function AppContent() {
-  const { currentUser, loaded } = useApp();
-
-  console.log('📊 AppContent render - loaded:', loaded, 'currentUser:', currentUser?.username);
-
-  if (!loaded) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f8fafc', fontFamily: 'Tahoma', fontSize: '18px', color: '#334155' }}>
-        در حال بارگذاری داده‌ها...
-      </div>
-    );
-  }
-
+  const { currentUser } = useApp();
+  
+  // نکته مهم: وقتی AppContent اجرا می‌شود، یعنی loaded=true است
+  // چون AppProvider وقتی loaded=false است، اسپینر نشان می‌دهد و children را رندر نمی‌کند
+  
+  console.log('📊 AppContent - currentUser:', currentUser?.username);
+  
   if (!currentUser) {
     console.log('🟢 نمایش فرم لاگین');
     return <Login />;
   }
-
-  console.log('🟢 کاربر لاگین کرده:', currentUser.username);
+  
+  console.log('🟢 کاربر لاگین کرده، نمایش Routes');
+  
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', fontFamily: 'Tahoma' }}>
-      <h1 style={{ color: '#16a34a' }}>✅ ورود موفقیت‌آمیز!</h1>
-      <p>خوش آمدید، {currentUser.firstName} {currentUser.lastName}</p>
-      <button 
-        onClick={() => window.location.reload()}
-        style={{ marginTop: '1rem', padding: '0.5rem 1rem', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontFamily: 'Tahoma' }}
-      >
-        خروج از سیستم
-      </button>
-    </div>
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        <Route index element={<Dashboard />} />
+        <Route path="meetings" element={<Meetings />} />
+        <Route path="meetings/:id" element={<MeetingDetail />} />
+        <Route path="all-minutes" element={<AllMinutes />} />
+        <Route path="resolutions" element={<Resolutions />} />
+        <Route path="resolutions/:filter" element={<Resolutions />} />
+        <Route path="resolutions/detail/:id" element={<ResolutionDetail />} />
+        <Route path="my-resolutions" element={<MyResolutions />} />
+        <Route path="reports" element={<Reports />} />
+        <Route path="users" element={<UsersPage />} />
+        <Route path="departments" element={<DepartmentsPage />} />
+        <Route path="settings" element={<Settings />} />
+      </Route>
+      
+      <Route path="/login" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 
