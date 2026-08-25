@@ -3,7 +3,8 @@ import { NavLink } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
 import {
   LayoutDashboard, Calendar, CheckSquare, Users, Building2,
-  BarChart3, Settings, LogOut, ClipboardList, AlertTriangle, Clock, FileText
+  BarChart3, Settings, LogOut, ClipboardList, AlertTriangle, Clock, FileText,
+  TrendingUp, Award
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -25,7 +26,14 @@ const menuItems = [
       { path: '/resolutions/pending-approval', label: 'نیازمند تأیید', icon: Clock },
     ]
   },
-  { path: '/reports', label: 'گزارش‌ها', icon: BarChart3 },
+  {
+    label: 'گزارش‌ها', icon: BarChart3,
+    children: [
+      { path: '/reports', label: 'گزارش‌های ساده' },
+      { path: '/advanced-reports', label: 'گزارش‌های پیشرفته', icon: TrendingUp },
+      { path: '/kpi', label: 'شاخص‌های عملکرد', icon: Award },
+    ]
+  },
   { path: '/users', label: 'کاربران', icon: Users, roles: ['super_admin', 'admin'] },
   { path: '/departments', label: 'واحدها', icon: Building2, roles: ['super_admin', 'admin'] },
   { path: '/settings', label: 'تنظیمات', icon: Settings, roles: ['super_admin', 'admin'] },
@@ -33,8 +41,6 @@ const menuItems = [
 
 export function Sidebar() {
   const { currentUser, logout, notifications } = useApp();
-  
-  // ✅ اصلاح: اضافه کردن || []
   const unreadCount = (notifications || []).filter(n => !n.isRead && n.userId === currentUser?.id).length;
 
   const hasAccess = (roles?: string[]) => {
@@ -50,7 +56,7 @@ export function Sidebar() {
             <ClipboardList className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="font-bold text-slate-900 text-sm">سامانه جلسات v4</h1>
+            <h1 className="font-bold text-slate-900 text-sm">سامانه جلسات v5</h1>
             <p className="text-xs text-slate-500">مدیریت مصوبات</p>
           </div>
         </div>
