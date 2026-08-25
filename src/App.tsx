@@ -20,12 +20,8 @@ import { Settings } from '@/pages/Settings';
 function AppContent() {
   const { currentUser } = useApp();
 
-  // اگر کاربر لاگین نکرده، فقط صفحه لاگین را نشان بده
-  if (!currentUser) {
-    return <Login />;
-  }
+  if (!currentUser) return <Login />;
 
-  // اگر کاربر لاگین کرده، روتر اصلی را نمایش بده
   return (
     <Routes>
       <Route path="/login" element={<Navigate to="/" replace />} />
