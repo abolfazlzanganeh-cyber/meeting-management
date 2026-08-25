@@ -1,12 +1,97 @@
 import React from 'react';
+import { useApp } from '@/context/AppContext';
+import { Card, CardContent, CardHeader, CardTitle, Badge } from '@/components/ui';
+import { toPersianNumber } from '@/lib/utils';
+import { Users as UsersIcon, Building2, Mail, Phone } from 'lucide-react';
 
 export function UsersPage() {
+  const { users, departments } = useApp();
+
+  const safeUsers = users || [];
+  const safeDepts = departments || [];
+
+  const getDeptName = (deptId: string) => {
+    return safeDepts.find(d => d.id === deptId)?.name || 'نامشخص';
+  };
+
+  const getRoleBadge = (role: string) => {
+    const roleMap: Record<string, { label: string; color: string }> = {
+      super_admin: { label: 'مدیر ارشد', color: 'bg-purple-100 text-purple-700' },
+      admin: { label: 'مدیر', color: 'bg-blue-100 text-blue-700' },
+      manager: { label: 'مدیر عامل', color: 'bg-indigo-100 text-indigo-700' },
+      secretary: { label: 'دبیر', color: 'bg-green-100 text-green-700' },
+      assignee: { label: 'مسئول', color: 'bg-orange-100 text-orange-700' },
+      supervisor: { label: 'ناظر', color: 'bg-yellow-100 text-yellow-700' },
+      approver: { label: 'تأیید کننده', color: 'bg-teal-100 text-teal-700' },
+      viewer: { label: 'بیننده', color: 'bg-gray-100 text-gray-700' },
+    };
+    const r = roleMap[role] || roleMap.viewer;
+    return <Badge className={r.color}>{r.label}</Badge>;
+  };
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">کاربران</h1>
-      <div className="bg-white rounded-lg shadow p-6">
-        <p className="text-gray-600">این بخش در حال توسعه است...</p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900">کاربران</h1>
+        <p className="text-sm text-slate-500 mt-1">مدیریت کاربران سیستم</p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>لیست کاربران ({toPersianNumber(safeUsers.length)})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {safeUsers.length === 0 ? (
+            <div className="text-center py-12">
+              <UsersIcon className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+              <p className="text-slate-500">کاربری ثبت نشده است</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {safeUsers.map(user => (
+                <div key={user.id} className="border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h3 className="font-semibold text-slate-900">{user.firstName} {user.lastName}</h3>
+                      <p className="text-xs text-slate-500 mt-1">{user.position}</p>
+                    </div>
+                    {getRoleBadge(user.role)}
+                  </div>
+
+                  <div className="space-y-2 text-xs text-slate-600">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-3 h-3" />
+                      <span>{getDeptName(user.departmentId)}</span>
+                    </div>
+                    {user.email && (
+                      <div className="flex items-center gap-2">
+                        <Mail className="w-3 h-3" />
+                        <span>{user.email}</span>
+                      </div>
+                    )}
+                    {user.phone && (
+                      <div className="flex items-center gap-2">
+                        <Phone className="w-3 h-3" />
+                        <span>{toPersianNumber(user.phone)}</span>
+                      </div>
+                    )}
+                    <div className="pt-2 border-t">
+                      <span className="text-slate-500">نام کاربری: </span>
+                      <span className="font-mono">{user.username}</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-3">
+                    <Badge className={user.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}>
+                      {user.isActive ? 'فعال' : 'غیرفعال'}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
