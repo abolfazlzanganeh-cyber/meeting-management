@@ -5,12 +5,12 @@ import { Layout } from '@/components/layout/Layout';
 import { Login } from '@/pages/Login';
 import { Dashboard } from '@/pages/Dashboard';
 import { Meetings } from '@/pages/Meetings';
-import { MeetingDetail } from '@/pages/MeetingDetail';
 import { NewMeeting } from '@/pages/NewMeeting';
+import { MeetingDetail } from '@/pages/MeetingDetail';
 import { AllMinutes } from '@/pages/AllMinutes';
 import { Resolutions } from '@/pages/Resolutions';
-import { ResolutionDetail } from '@/pages/ResolutionDetail';
 import { NewResolution } from '@/pages/NewResolution';
+import { ResolutionDetail } from '@/pages/ResolutionDetail';
 import { MyResolutions } from '@/pages/MyResolutions';
 import { UsersPage } from '@/pages/Users';
 import { DepartmentsPage } from '@/pages/Departments';
@@ -18,8 +18,9 @@ import { Reports } from '@/pages/Reports';
 import { Settings } from '@/pages/Settings';
 
 function AppContent() {
-  const { currentUser } = useApp();
+  const { currentUser, loaded } = useApp();
 
+  if (!loaded) return <div className="flex items-center justify-center h-screen">در حال بارگذاری...</div>;
   if (!currentUser) return <Login />;
 
   return (
@@ -28,11 +29,11 @@ function AppContent() {
       <Route path="/" element={<Layout />}>
         <Route index element={<Dashboard />} />
         <Route path="meetings" element={<Meetings />} />
-        <Route path="meetings/new" element={<NewMeeting />} />
+        <Route path="meetings/new" element={<NewMeeting />} /> {/* مسیر جدید */}
         <Route path="meetings/:id" element={<MeetingDetail />} />
         <Route path="all-minutes" element={<AllMinutes />} />
         <Route path="resolutions" element={<Resolutions />} />
-        <Route path="resolutions/new" element={<NewResolution />} />
+        <Route path="resolutions/new" element={<NewResolution />} /> {/* مسیر جدید */}
         <Route path="resolutions/:filter" element={<Resolutions />} />
         <Route path="resolutions/detail/:id" element={<ResolutionDetail />} />
         <Route path="my-resolutions" element={<MyResolutions />} />
@@ -47,9 +48,5 @@ function AppContent() {
 }
 
 export default function App() {
-  return (
-    <AppProvider>
-      <AppContent />
-    </AppProvider>
-  );
+  return <AppProvider><AppContent /></AppProvider>;
 }
