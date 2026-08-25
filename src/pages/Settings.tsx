@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
-import { useApp } from '@/context/AppContext';
+import * as storage from '@/lib/storage';
 import { Card, CardContent, CardHeader, CardTitle, Button } from '@/components/ui';
 import { Save, Settings as SettingsIcon } from 'lucide-react';
 
 export function Settings() {
-  const { getSettings, saveSettings } = useApp();
-  const initialSettings = getSettings();
-  const [settings, setSettings] = useState(initialSettings);
+  // خواندن مستقیم و ایمن از storage (بدون وابستگی به AppContext)
+  const [settings, setSettings] = useState(storage.getSettings());
   const [saved, setSaved] = useState(false);
 
   const handleSave = () => {
-    saveSettings(settings);
+    storage.setSettings(settings);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
@@ -34,15 +33,13 @@ export function Settings() {
             <label className="block text-sm font-medium mb-1">پیشوند کد جلسات</label>
             <input type="text" value={settings.meetingCodePrefix}
               onChange={(e) => setSettings({ ...settings, meetingCodePrefix: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
-            <p className="text-xs text-slate-500 mt-1">مثال: {settings.meetingCodePrefix}-1405-001</p>
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-blue-500" />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">پیشوند کد مصوبات</label>
             <input type="text" value={settings.resolutionCodePrefix}
               onChange={(e) => setSettings({ ...settings, resolutionCodePrefix: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
-            <p className="text-xs text-slate-500 mt-1">مثال: {settings.resolutionCodePrefix}-1405-001</p>
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-blue-500" />
           </div>
         </CardContent>
       </Card>
@@ -53,14 +50,14 @@ export function Settings() {
           <div>
             <label className="block text-sm font-medium mb-1">حداکثر حجم فایل (مگابایت)</label>
             <input type="number" value={settings.maxFileSize}
-              onChange={(e) => setSettings({ ...settings, maxFileSize: parseInt(e.target.value) })}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
+              onChange={(e) => setSettings({ ...settings, maxFileSize: parseInt(e.target.value) || 10 })}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-blue-500" />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">انواع فایل مجاز (با کاما جدا کنید)</label>
             <input type="text" value={settings.allowedFileTypes.join(', ')}
               onChange={(e) => setSettings({ ...settings, allowedFileTypes: e.target.value.split(',').map(s => s.trim()) })}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-blue-500" />
           </div>
         </CardContent>
       </Card>
@@ -72,26 +69,28 @@ export function Settings() {
             <label className="block text-sm font-medium mb-1">روزهای یادآوری (با کاما جدا کنید)</label>
             <input type="text" value={settings.reminderDays.join(', ')}
               onChange={(e) => setSettings({ ...settings, reminderDays: e.target.value.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n)) })}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
-            <p className="text-xs text-slate-500 mt-1">مثال: 7, 3, 1, 0 → یادآوری ۷ روز، ۳ روز، ۱ روز و روز سررسید</p>
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-blue-500" />
+            <p className="text-xs text-slate-500 mt-1">مثال: 7, 3, 1, 0</p>
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">روزهای هشدار تأخیر (زرد)</label>
-            <input type="number" value={settings.overdueWarningDays}
-              onChange={(e) => setSettings({ ...settings, overdueWarningDays: parseInt(e.target.value) })}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">روزهای بحرانی تأخیر (قرمز)</label>
-            <input type="number" value={settings.overdueCriticalDays}
-              onChange={(e) => setSettings({ ...settings, overdueCriticalDays: parseInt(e.target.value) })}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg" />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">هشدار تأخیر (روز)</label>
+              <input type="number" value={settings.overdueWarningDays}
+                onChange={(e) => setSettings({ ...settings, overdueWarningDays: parseInt(e.target.value) || 3 })}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-blue-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">تأخیر بحرانی (روز)</label>
+              <input type="number" value={settings.overdueCriticalDays}
+                onChange={(e) => setSettings({ ...settings, overdueCriticalDays: parseInt(e.target.value) || 7 })}
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-blue-500" />
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      <div className="sticky bottom-4 bg-white p-4 rounded-lg shadow-lg border flex items-center justify-between">
-        {saved && <span className="text-green-600 font-medium">✅ تنظیمات ذخیره شد</span>}
+      <div className="sticky bottom-4 bg-white p-4 rounded-lg shadow-lg border flex items-center justify-between z-30">
+        {saved && <span className="text-green-600 font-medium text-sm">✅ تنظیمات با موفقیت ذخیره شد</span>}
         <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 mr-auto">
           <Save className="w-4 h-4 ml-2" />
           ذخیره تنظیمات

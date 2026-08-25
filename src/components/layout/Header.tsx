@@ -11,7 +11,7 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
   const notifRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  // ✅ ایمن‌سازی
+  // ✅ ایمن‌سازی: اگر notifications تعریف نشده بود، آرایه خالی در نظر بگیر
   const safeNotifications = notifications || [];
   const userNotifs = safeNotifications.filter(n => n.userId === currentUser?.id);
   const unreadCount = userNotifs.filter(n => !n.isRead).length;
@@ -24,6 +24,19 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+      }
+      if (e.key === 'Escape') {
+        setShowNotifications(false);
+      }
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
   }, []);
 
   return (
@@ -44,11 +57,7 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <button 
-          onClick={() => navigate('/meetings/new')}
-          className="p-2 hover:bg-slate-100 rounded-lg" 
-          title="ایجاد جلسه جدید"
-        >
+        <button onClick={() => navigate('/meetings/new')} className="p-2 hover:bg-slate-100 rounded-lg" title="ایجاد جلسه جدید">
           <Plus className="w-5 h-5 text-slate-600" />
         </button>
         <div className="relative" ref={notifRef}>
@@ -64,7 +73,7 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
             )}
           </button>
           {showNotifications && (
-            <div className="absolute left-0 mt-2 w-96 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
+            <div className="absolute left-0 mt-2 w-96 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden animate-fade-in">
               <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
                 <h3 className="font-semibold text-slate-900">اعلان‌ها</h3>
                 {unreadCount > 0 && (
@@ -81,7 +90,7 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                     <div
                       key={n.id}
                       onClick={() => {
-                        markNotificationRead(n.id);
+                        if (markNotificationRead) markNotificationRead(n.id);
                         if (n.link) navigate(n.link);
                         setShowNotifications(false);
                       }}
