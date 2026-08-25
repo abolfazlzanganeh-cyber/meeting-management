@@ -15,7 +15,7 @@ export function Dashboard() {
   const navigate = useNavigate();
   const today = todayJalali();
 
-  // ✅ اصلاح: اضافه کردن || [] برای تمام آرایه‌ها
+  // ✅ ایمن‌سازی کامل
   const safeMeetings = meetings || [];
   const safeResolutions = resolutions || [];
   const safeDepartments = departments || [];

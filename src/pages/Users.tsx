@@ -1,14 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
-import { Card, CardContent, CardHeader, CardTitle, Badge } from '@/components/ui';
+import { Card, CardContent, CardHeader, CardTitle, Badge, Button } from '@/components/ui';
 import { toPersianNumber } from '@/lib/utils';
-import { Users as UsersIcon, Building2, Mail, Phone } from 'lucide-react';
+import { Users as UsersIcon, Building2, Plus, Search, Edit, Trash2 } from 'lucide-react';
 
 export function UsersPage() {
   const { users, departments } = useApp();
+  const [searchQuery, setSearchQuery] = useState('');
 
   const safeUsers = users || [];
   const safeDepts = departments || [];
+
+  let filteredUsers = safeUsers;
+  if (searchQuery) {
+    filteredUsers = safeUsers.filter(u =>
+      u.firstName.includes(searchQuery) ||
+      u.lastName.includes(searchQuery) ||
+      u.username.includes(searchQuery) ||
+      u.position?.includes(searchQuery)
+    );
+  }
 
   const getDeptName = (deptId: string) => {
     return safeDepts.find(d => d.id === deptId)?.name || 'نامشخص';
@@ -31,24 +42,39 @@ export function UsersPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">کاربران</h1>
-        <p className="text-sm text-slate-500 mt-1">مدیریت کاربران سیستم</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">کاربران</h1>
+          <p className="text-sm text-slate-500 mt-1">مدیریت کاربران سیستم ({toPersianNumber(safeUsers.length)} کاربر)</p>
+        </div>
+        <Button className="bg-blue-600 hover:bg-blue-700">
+          <Plus className="w-4 h-4 ml-2" />
+          افزودن کاربر جدید
+        </Button>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>لیست کاربران ({toPersianNumber(safeUsers.length)})</CardTitle>
+          <div className="relative max-w-md">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="جستجو در کاربران..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pr-10 pl-4 py-2 border border-slate-200 rounded-lg text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            />
+          </div>
         </CardHeader>
         <CardContent>
-          {safeUsers.length === 0 ? (
+          {filteredUsers.length === 0 ? (
             <div className="text-center py-12">
               <UsersIcon className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-              <p className="text-slate-500">کاربری ثبت نشده است</p>
+              <p className="text-slate-500">کاربری یافت نشد</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {safeUsers.map(user => (
+              {filteredUsers.map(user => (
                 <div key={user.id} className="border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                   <div className="flex items-start justify-between mb-3">
                     <div>
@@ -63,28 +89,24 @@ export function UsersPage() {
                       <Building2 className="w-3 h-3" />
                       <span>{getDeptName(user.departmentId)}</span>
                     </div>
-                    {user.email && (
-                      <div className="flex items-center gap-2">
-                        <Mail className="w-3 h-3" />
-                        <span>{user.email}</span>
-                      </div>
-                    )}
-                    {user.phone && (
-                      <div className="flex items-center gap-2">
-                        <Phone className="w-3 h-3" />
-                        <span>{toPersianNumber(user.phone)}</span>
-                      </div>
-                    )}
                     <div className="pt-2 border-t">
                       <span className="text-slate-500">نام کاربری: </span>
                       <span className="font-mono">{user.username}</span>
                     </div>
                   </div>
 
-                  <div className="mt-3">
+                  <div className="mt-3 flex items-center justify-between">
                     <Badge className={user.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}>
                       {user.isActive ? 'فعال' : 'غیرفعال'}
                     </Badge>
+                    <div className="flex gap-1">
+                      <button className="p-1.5 hover:bg-slate-100 rounded" title="ویرایش">
+                        <Edit className="w-4 h-4 text-slate-500" />
+                      </button>
+                      <button className="p-1.5 hover:bg-red-50 rounded" title="حذف">
+                        <Trash2 className="w-4 h-4 text-red-500" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}

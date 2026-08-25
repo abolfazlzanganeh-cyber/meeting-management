@@ -1,20 +1,38 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import type { User } from '@/types';
+import type { User, Department, MeetingType, Meeting, Attendee, Resolution, Notification } from '@/types';
 import * as storage from '@/lib/storage';
 import { seedDatabase } from '@/lib/seed';
 
 interface AppContextType {
   currentUser: User | null;
-  loaded: boolean;
+  loaded: boolean; // ✅ اضافه شد
+  users: User[];
+  departments: Department[];
+  meetingTypes: MeetingType[];
+  meetings: Meeting[];
+  attendees: Attendee[];
+  resolutions: Resolution[];
+  notifications: Notification[];
   login: (username: string, password: string) => boolean;
   logout: () => void;
+  refreshMeetings: () => void;
+  refreshResolutions: () => void;
+  markNotificationRead: (id: string) => void;
+  markAllNotificationsRead: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [loaded, setLoaded] = useState(false);
+  const [loaded, setLoaded] = useState(false); // ✅ اضافه شد
+  const [users, setUsers] = useState<User[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [meetingTypes, setMeetingTypes] = useState<MeetingType[]>([]);
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [attendees, setAttendees] = useState<Attendee[]>([]);
+  const [resolutions, setResolutions] = useState<Resolution[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
     const init = async () => {
@@ -26,11 +44,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
           await storage.loadAllData();
         }
 
-        // بررسی کاربر ذخیره شده
         const savedUser = storage.getCurrentUser();
-        if (savedUser) {
-          setCurrentUser(savedUser);
+        const allUsers = storage.getUsers() || [];
+        const isValidUser = savedUser && allUsers.find(u => u.id === savedUser.id && u.isActive);
+
+        if (isValidUser) {
+          setCurrentUser(isValidUser);
+        } else {
+          storage.clearCurrentUser();
+          setCurrentUser(null);
         }
+
+        setUsers(allUsers);
+        setDepartments(storage.getDepartments() || []);
+        setMeetingTypes(storage.getMeetingTypes() || []);
+        setMeetings(storage.getMeetings() || []);
+        setAttendees(storage.getAttendees() || []);
+        setResolutions(storage.getResolutions() || []);
+        setNotifications(storage.getNotifications() || []);
       } catch (error) {
         console.error('❌ Init error:', error);
       } finally {
@@ -41,7 +72,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = (username: string, password: string): boolean => {
-    const user = storage.getUsers().find(u => u.username === username && u.password === password && u.isActive);
+    const allUsers = storage.getUsers() || [];
+    const user = allUsers.find(u => u.username === username && u.password === password && u.isActive);
     if (user) {
       storage.setCurrentUser(user);
       setCurrentUser(user);
@@ -55,8 +87,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setCurrentUser(null);
   };
 
+  const markNotificationRead = (id: string) => {
+    const updated = (notifications || []).map(n => n.id === id ? { ...n, isRead: true } : n);
+    setNotifications(updated);
+    storage.setNotifications(updated);
+  };
+
+  const markAllNotificationsRead = () => {
+    const updated = (notifications || []).map(n => ({ ...n, isRead: true }));
+    setNotifications(updated);
+    storage.setNotifications(updated);
+  };
+
+  if (!loaded) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f8fafc', fontFamily: 'Tahoma', fontSize: '18px', color: '#334155' }}>
+        در حال بارگذاری داده‌ها...
+      </div>
+    );
+  }
+
   return (
-    <AppContext.Provider value={{ currentUser, loaded, login, logout }}>
+    <AppContext.Provider value={{
+      currentUser, loaded, users, departments, meetingTypes, meetings, attendees, resolutions, notifications,
+      login, logout, markNotificationRead, markAllNotificationsRead,
+      refreshMeetings: () => setMeetings([...(storage.getMeetings() || [])]),
+      refreshResolutions: () => setResolutions([...(storage.getResolutions() || [])]),
+    }}>
       {children}
     </AppContext.Provider>
   );

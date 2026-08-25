@@ -11,8 +11,9 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
   const notifRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  // ✅ اصلاح: اضافه کردن || [] برای جلوگیری از خطا
-  const userNotifs = (notifications || []).filter(n => n.userId === currentUser?.id);
+  // ✅ ایمن‌سازی
+  const safeNotifications = notifications || [];
+  const userNotifs = safeNotifications.filter(n => n.userId === currentUser?.id);
   const unreadCount = userNotifs.filter(n => !n.isRead).length;
 
   useEffect(() => {
@@ -23,19 +24,6 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-      }
-      if (e.key === 'Escape') {
-        setShowNotifications(false);
-      }
-    };
-    document.addEventListener('keydown', handleKey);
-    return () => document.removeEventListener('keydown', handleKey);
   }, []);
 
   return (
@@ -51,12 +39,16 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
             placeholder="جستجو... (Ctrl+K)"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pr-10 pl-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:bg-white focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-colors"
+            className="w-full pr-10 pl-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-colors"
           />
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <button className="p-2 hover:bg-slate-100 rounded-lg" title="ایجاد جلسه جدید">
+        <button 
+          onClick={() => navigate('/meetings/new')}
+          className="p-2 hover:bg-slate-100 rounded-lg" 
+          title="ایجاد جلسه جدید"
+        >
           <Plus className="w-5 h-5 text-slate-600" />
         </button>
         <div className="relative" ref={notifRef}>
@@ -72,11 +64,11 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
             )}
           </button>
           {showNotifications && (
-            <div className="absolute left-0 mt-2 w-96 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden animate-fade-in">
+            <div className="absolute left-0 mt-2 w-96 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden">
               <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
                 <h3 className="font-semibold text-slate-900">اعلان‌ها</h3>
                 {unreadCount > 0 && (
-                  <button onClick={markAllNotificationsRead} className="text-xs text-primary-600 hover:text-primary-700">
+                  <button onClick={markAllNotificationsRead} className="text-xs text-blue-600 hover:text-blue-700">
                     علامت‌گذاری همه به‌عنوان خوانده‌شده
                   </button>
                 )}
@@ -93,10 +85,10 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
                         if (n.link) navigate(n.link);
                         setShowNotifications(false);
                       }}
-                      className={`px-4 py-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer ${!n.isRead ? 'bg-primary-50/30' : ''}`}
+                      className={`px-4 py-3 border-b border-slate-100 hover:bg-slate-50 cursor-pointer ${!n.isRead ? 'bg-blue-50/30' : ''}`}
                     >
                       <div className="flex items-start gap-3">
-                        <div className={`w-2 h-2 rounded-full mt-1.5 ${!n.isRead ? 'bg-primary-500' : 'bg-transparent'}`} />
+                        <div className={`w-2 h-2 rounded-full mt-1.5 ${!n.isRead ? 'bg-blue-500' : 'bg-transparent'}`} />
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-medium text-slate-900">{n.title}</div>
                           <div className="text-xs text-slate-500 mt-0.5">{n.message}</div>

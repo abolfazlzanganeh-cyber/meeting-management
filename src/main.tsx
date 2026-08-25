@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import './index.css';
 
-console.log('🚀 BUILD: v-production-ready |', new Date().toISOString());
+console.log('🏗 BUILD VERSION: v-final-production |', new Date().toISOString());
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
