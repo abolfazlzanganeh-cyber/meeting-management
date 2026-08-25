@@ -12,7 +12,7 @@ export function Dashboard() {
   const navigate = useNavigate();
   const today = todayJalali();
 
-  // ✅ ایمن‌سازی ریشه‌ای: اگر آرایه undefined بود، آرایه خالی در نظر بگیر
+  // ✅ ایمن‌سازی حیاتی: جلوگیری از کرش در صورت undefined بودن داده‌ها
   const safeMeetings = meetings || [];
   const safeResolutions = resolutions || [];
   const safeDepartments = departments || [];
@@ -28,7 +28,9 @@ export function Dashboard() {
   const completedResolutions = activeResolutions.filter(r => r.status === 'completed').length;
   const needsApprovalResolutions = activeResolutions.filter(r => r.status === 'needs_approval').length;
   
-  const avgProgress = activeResolutions.length > 0 ? Math.round(activeResolutions.reduce((sum, r) => sum + r.progress, 0) / activeResolutions.length) : 0;
+  const avgProgress = activeResolutions.length > 0
+    ? Math.round(activeResolutions.reduce((sum, r) => sum + r.progress, 0) / activeResolutions.length)
+    : 0;
 
   const stats = [
     { label: 'کل جلسات', value: totalMeetings, icon: Calendar, color: 'bg-blue-500', link: '/meetings' },
