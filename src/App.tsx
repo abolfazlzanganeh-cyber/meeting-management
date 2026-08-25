@@ -14,39 +14,55 @@ import { UsersPage } from '@/pages/Users';
 import { DepartmentsPage } from '@/pages/Departments';
 import { Reports } from '@/pages/Reports';
 import { Settings } from '@/pages/Settings';
-import { AdvancedReports } from '@/pages/AdvancedReports';
-import { KPIDashboard } from '@/pages/KPIDashboard';
+import { GlobalSearch } from '@/components/GlobalSearch';
 
 function AppContent() {
   const { currentUser, loaded } = useApp();
 
-  if (!loaded) return <div className="flex items-center justify-center h-screen">در حال بارگذاری...</div>;
+  if (!loaded) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-slate-50 dark:bg-slate-900">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600 dark:text-slate-300">در حال بارگذاری سامانه...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!currentUser) return <Login />;
 
   return (
-    <Routes>
-      <Route path="/login" element={<Navigate to="/" replace />} />
-      <Route path="/" element={<Layout />}>
-        <Route index element={<Dashboard />} />
-        <Route path="meetings" element={<Meetings />} />
-        <Route path="meetings/:id" element={<MeetingDetail />} />
-        <Route path="all-minutes" element={<AllMinutes />} />
-        <Route path="resolutions" element={<Resolutions />} />
-        <Route path="resolutions/:filter" element={<Resolutions />} />
-        <Route path="resolutions/detail/:id" element={<ResolutionDetail />} />
-        <Route path="my-resolutions" element={<MyResolutions />} />
-        <Route path="reports" element={<Reports />} />
-        <Route path="advanced-reports" element={<AdvancedReports />} />
-        <Route path="kpi" element={<KPIDashboard />} />
-        <Route path="users" element={<UsersPage />} />
-        <Route path="departments" element={<DepartmentsPage />} />
-        <Route path="settings" element={<Settings />} />
-      </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <>
+      <GlobalSearch />
+      <Routes>
+        <Route path="/login" element={<Navigate to="/" replace />} />
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="meetings" element={<Meetings />} />
+          <Route path="meetings/new" element={<div className="p-6 dark:text-white">فرم ایجاد جلسه (در حال توسعه)</div>} />
+          <Route path="meetings/:id" element={<MeetingDetail />} />
+          <Route path="all-minutes" element={<AllMinutes />} />
+          <Route path="resolutions" element={<Resolutions />} />
+          <Route path="resolutions/new" element={<div className="p-6 dark:text-white">فرم ایجاد مصوبه (در حال توسعه)</div>} />
+          <Route path="resolutions/:filter" element={<Resolutions />} />
+          <Route path="resolutions/detail/:id" element={<ResolutionDetail />} />
+          <Route path="my-resolutions" element={<MyResolutions />} />
+          <Route path="reports" element={<Reports />} />
+          <Route path="users" element={<UsersPage />} />
+          <Route path="departments" element={<DepartmentsPage />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   );
 }
 
 export default function App() {
-  return <AppProvider><AppContent /></AppProvider>;
+  return (
+    <AppProvider>
+      <AppContent />
+    </AppProvider>
+  );
 }

@@ -12,13 +12,17 @@ export function Dashboard() {
   const navigate = useNavigate();
   const today = todayJalali();
 
-  // ✅ ایمن‌سازی حیاتی: جلوگیری از کرش در صورت undefined بودن داده‌ها
+  // ✅ ایمن‌سازی حیاتی
   const safeMeetings = meetings || [];
   const safeResolutions = resolutions || [];
   const safeDepartments = departments || [];
 
   const totalMeetings = safeMeetings.filter(m => !m.isArchived).length;
-  const currentMonthMeetings = safeMeetings.filter(m => m.date.substring(0, 7) === today.substring(0, 7)).length;
+  const currentMonthMeetings = safeMeetings.filter(m => {
+    const mMonth = m.date.substring(0, 7);
+    const tMonth = today.substring(0, 7);
+    return mMonth === tMonth;
+  }).length;
   const futureMeetings = safeMeetings.filter(m => m.date >= today && m.status === 'scheduled').length;
   
   const activeResolutions = safeResolutions.filter(r => !r.isArchived);
@@ -50,6 +54,16 @@ export function Dashboard() {
     { name: 'تأخیر دار', value: overdueResolutions, color: '#ef4444' },
   ].filter(d => d.value > 0);
 
+  const deptData = safeDepartments.map(d => {
+    const deptRes = activeResolutions.filter(r => r.departmentId === d.id);
+    return {
+      name: d.name,
+      total: deptRes.length,
+      completed: deptRes.filter(r => r.status === 'completed').length,
+      overdue: deptRes.filter(r => r.status === 'overdue').length,
+    };
+  }).filter(d => d.total > 0);
+
   return (
     <div className="space-y-6">
       <div><h1 className="text-2xl font-bold text-slate-900">داشبورد</h1><p className="text-sm text-slate-500 mt-1">نمای کلی وضعیت</p></div>
@@ -57,7 +71,7 @@ export function Dashboard() {
         {stats.map((stat, idx) => (
           <div key={idx} onClick={() => navigate(stat.link)} className="bg-white rounded-xl border border-slate-200 p-4 hover:shadow-md transition-shadow cursor-pointer">
             <div className={`w-10 h-10 ${stat.color} rounded-lg flex items-center justify-center mb-3`}><stat.icon className="w-5 h-5 text-white" /></div>
-            <div className="text-2xl font-bold text-slate-900">{toPersianNumber(stat.value)}</div>
+            <div className="text-2xl font-bold text-slate-900 mb-1">{toPersianNumber(stat.value)}</div>
             <div className="text-xs text-slate-500">{stat.label}</div>
           </div>
         ))}
@@ -74,6 +88,23 @@ export function Dashboard() {
                   </Pie>
                   <Tooltip /><Legend />
                 </PieChart>
+              </ResponsiveContainer>
+            ) : <div className="text-center py-12 text-slate-500">داده‌ای نیست</div>}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle>مصوبات بر اساس واحد</CardTitle></CardHeader>
+          <CardContent>
+            {deptData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={deptData} layout="vertical" margin={{ left: 20 }}>
+                  <XAxis type="number" tickFormatter={(v) => toPersianNumber(v)} />
+                  <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 12 }} />
+                  <Tooltip /><Legend />
+                  <Bar dataKey="total" name="کل" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="completed" name="تکمیل شده" fill="#10b981" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="overdue" name="تأخیر دار" fill="#ef4444" radius={[0, 4, 4, 0]} />
+                </BarChart>
               </ResponsiveContainer>
             ) : <div className="text-center py-12 text-slate-500">داده‌ای نیست</div>}
           </CardContent>

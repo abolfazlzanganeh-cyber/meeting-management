@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- پس‌زمینه -->
+  <circle cx="256" cy="256" r="240" fill="url(#gradient)"/>
+  
+  <!-- گرادیانت -->
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e40af;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- افراد (دایره‌ها) -->
+  <circle cx="200" cy="200" r="40" fill="white"/>
+  <circle cx="312" cy="200" r="40" fill="white"/>
+  <circle cx="256" cy="312" r="40" fill="white"/>
+  
+  <!-- خطوط اتصال -->
+  <line x1="200" y1="240" x2="256" y2="272" stroke="white" stroke-width="6" opacity="0.6"/>
+  <line x1="312" y1="240" x2="256" y2="272" stroke="white" stroke-width="6" opacity="0.6"/>
+  <line x1="200" y1="240" x2="312" y2="240" stroke="white" stroke-width="6" opacity="0.6"/>
+</svg>
