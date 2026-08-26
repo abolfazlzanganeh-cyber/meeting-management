@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import type { User, Department, MeetingType, Meeting, Attendee, Resolution, Notification } from '@/types';
+import type { User, Department, MeetingType, Meeting, Resolution, Notification } from '@/types';
 import * as storage from '@/lib/storage';
 import { seedDatabase } from '@/lib/seed';
 
@@ -14,11 +14,9 @@ interface AppContextType {
   notifications: Notification[];
   login: (username: string, password: string) => boolean;
   logout: () => void;
-  // توابع عملیاتی
-  addUser: (user: Omit<User, 'id' | 'createdAt'>) => void;
-  addMeeting: (meeting: Omit<Meeting, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  addResolution: (res: Omit<Resolution, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateResolutionStatus: (id: string, status: string, progress: number) => void;
+  addMeeting: (meetingData: any) => string;
+  addResolution: (resData: any) => void;
+  updateResolution: (id: string, data: any) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -71,55 +69,47 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const logout = () => { storage.clearCurrentUser(); setCurrentUser(null); };
 
-  // ===== توابع عملیاتی =====
-  const addUser = (userData: Omit<User, 'id' | 'createdAt'>) => {
-    const newUser = { ...userData, id: `u${Date.now()}`, createdAt: new Date().toISOString() } as User;
-    const updated = [...(users || []), newUser];
-    setUsers(updated);
-    storage.setUsers(updated);
-    // ارسال اعلان
-    const newNotif = { id: `n${Date.now()}`, userId: newUser.id, title: 'حساب کاربری ایجاد شد', message: `نام کاربری شما: ${newUser.username}`, type: 'info' as const, isRead: false, createdAt: new Date().toISOString() };
-    const updatedNotifs = [...(notifications || []), newNotif];
-    setNotifications(updatedNotifs);
-    storage.setNotifications(updatedNotifs);
+  // ✅ تابع ثبت جلسه (اصلاح شده برای برگرداندن ID)
+  const addMeeting = (meetingData: any): string => {
+    const newMeeting = {
+      ...meetingData,
+      id: `m${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    const updatedMeetings = [...(meetings || []), newMeeting];
+    setMeetings(updatedMeetings);
+    storage.setMeetings(updatedMeetings);
+    return newMeeting.id; // برگرداندن ID برای مسیریابی
   };
 
-  const addMeeting = (meetingData: Omit<Meeting, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newMeeting = { ...meetingData, id: `m${Date.now()}`, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as Meeting;
-    const updated = [...(meetings || []), newMeeting];
-    setMeetings(updated);
-    storage.setMeetings(updated);
+  // ✅ تابع ثبت مصوبه
+  const addResolution = (resData: any) => {
+    const newRes = {
+      ...resData,
+      id: `r${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    const updatedRes = [...(resolutions || []), newRes];
+    setResolutions(updatedRes);
+    storage.setResolutions(updatedRes);
   };
 
-  const addResolution = (resData: Omit<Resolution, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newRes = { ...resData, id: `r${Date.now()}`, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as Resolution;
-    const updated = [...(resolutions || []), newRes];
-    setResolutions(updated);
-    storage.setResolutions(updated);
-    
-    // ارسال اعلان به مسئولین
-    resData.assigneeIds.forEach(userId => {
-      const notif = { id: `n${Date.now()}${Math.random()}`, userId, title: 'مصوبه جدید', message: `مصوبه "${resData.title}" به شما محول شد.`, type: 'assignment' as const, isRead: false, createdAt: new Date().toISOString(), link: `/resolutions/detail/${newRes.id}` };
-      const currentNotifs = storage.getNotifications() || [];
-      storage.setNotifications([...currentNotifs, notif]);
-    });
-    setNotifications(storage.getNotifications());
-  };
-
-  const updateResolutionStatus = (id: string, status: string, progress: number) => {
-    const updated = (resolutions || []).map(r => r.id === id ? { ...r, status, progress, updatedAt: new Date().toISOString() } : r);
+  const updateResolution = (id: string, data: any) => {
+    const updated = (resolutions || []).map(r => r.id === id ? { ...r, ...data, updatedAt: new Date().toISOString() } : r);
     setResolutions(updated);
     storage.setResolutions(updated);
   };
 
   if (!loaded) {
-    return <div className="flex items-center justify-center h-screen bg-slate-50 text-slate-600">در حال بارگذاری سامانه...</div>;
+    return <div className="flex items-center justify-center h-screen bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-300">در حال بارگذاری سامانه...</div>;
   }
 
   return (
     <AppContext.Provider value={{
       currentUser, loaded, users, departments, meetingTypes, meetings, resolutions, notifications,
-      login, logout, addUser, addMeeting, addResolution, updateResolutionStatus
+      login, logout, addMeeting, addResolution, updateResolution
     }}>
       {children}
     </AppContext.Provider>
