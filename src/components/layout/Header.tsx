@@ -13,7 +13,6 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
   const notifRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  // ✅ ایمن‌سازی حیاتی
   const safeNotifications = notifications || [];
   const userNotifs = safeNotifications.filter(n => n.userId === currentUser?.id);
   const unreadCount = userNotifs.filter(n => !n.isRead).length;
@@ -26,19 +25,6 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-      }
-      if (e.key === 'Escape') {
-        setShowNotifications(false);
-      }
-    };
-    document.addEventListener('keydown', handleKey);
-    return () => document.removeEventListener('keydown', handleKey);
   }, []);
 
   return (
@@ -59,20 +45,17 @@ export function Header({ onMenuClick }: { onMenuClick?: () => void }) {
         </div>
       </div>
       <div className="flex items-center gap-2">
+        {/* ✅ لینک صحیح به ایجاد جلسه جدید */}
         <button onClick={() => navigate('/meetings/new')} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg" title="ایجاد جلسه جدید">
           <Plus className="w-5 h-5 text-slate-600 dark:text-slate-300" />
         </button>
         
-        {/* ✅ دکمه تغییر تم */}
         <button onClick={toggleTheme} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg" title="تغییر تم">
           {isDark ? <Sun className="w-5 h-5 text-yellow-500" /> : <Moon className="w-5 h-5 text-slate-600" />}
         </button>
 
         <div className="relative" ref={notifRef}>
-          <button
-            onClick={() => setShowNotifications(!showNotifications)}
-            className="relative p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
-          >
+          <button onClick={() => setShowNotifications(!showNotifications)} className="relative p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">
             <Bell className="w-5 h-5 text-slate-600 dark:text-slate-300" />
             {unreadCount > 0 && (
               <span className="absolute top-1 left-1 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center">
