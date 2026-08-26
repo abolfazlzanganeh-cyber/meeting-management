@@ -1,4 +1,8 @@
-import React from 'react';
+import { 
+  LayoutDashboard, Calendar, CheckSquare, Users, Building2,
+  BarChart3, Settings, LogOut, ClipboardList, AlertTriangle, Clock, FileText,
+  UserCircle // ✅ این خط را اضافه کنید
+} from 'lucide-react';import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useApp } from '@/context/AppContext';
 import {
@@ -9,6 +13,10 @@ import {
 import { cn } from '@/lib/utils';
 
 const menuItems = [
+  { path: '/', label: 'داشبورد اصلی', icon: LayoutDashboard },
+  { path: '/my-dashboard', label: 'داشبورد من', icon: UserCircle }, // ✅ این خط را اضافه کنید
+  // ... بقیه منوها
+];
   { path: '/', label: 'داشبورد', icon: LayoutDashboard },
   {
     label: 'جلسات', icon: Calendar,

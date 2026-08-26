@@ -17,6 +17,7 @@ import { DepartmentsPage } from '@/pages/Departments';
 import { Reports } from '@/pages/Reports';
 import { Settings } from '@/pages/Settings';
 import { GlobalSearch } from '@/components/GlobalSearch';
+import { MyDashboard } from '@/pages/MyDashboard';
 
 function AppContent() {
   const { currentUser, loaded } = useApp();
@@ -41,6 +42,7 @@ function AppContent() {
         <Route path="/login" element={<Navigate to="/" replace />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<Dashboard />} />
+          <Route path="my-dashboard" element={<MyDashboard />} />
           <Route path="meetings" element={<Meetings />} />
           <Route path="meetings/new" element={<NewMeeting />} /> {/* ✅ اصلاح شد */}
           <Route path="meetings/:id" element={<MeetingDetail />} />

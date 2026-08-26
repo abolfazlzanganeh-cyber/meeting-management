@@ -35,6 +35,32 @@ export function NewResolution() {
       alert('❌ حداقل یک مسئول اجرا باید انتخاب شود');
       return;
     }
+
+    // ✅ ایجاد گردش کار پیش‌فرض
+    const defaultWorkflow = [
+      {
+        id: `wf${Date.now()}_1`,
+        order: 1,
+        title: 'بررسی و تأیید اولیه',
+        assigneeId: currentUser?.id || '',
+        status: 'pending' as const,
+      },
+      {
+        id: `wf${Date.now()}_2`,
+        order: 2,
+        title: 'اجرا',
+        assigneeId: formData.assigneeIds[0] || '',
+        status: 'pending' as const,
+      },
+      {
+        id: `wf${Date.now()}_3`,
+        order: 3,
+        title: 'تأیید نهایی',
+        assigneeId: currentUser?.id || '',
+        status: 'pending' as const,
+      },
+    ];
+
     addResolution({
       code: `RES-${Date.now()}`,
       ...formData,
@@ -46,6 +72,8 @@ export function NewResolution() {
       progressHistory: [],
       approvalHistory: [],
       timeline: [],
+      workflow: defaultWorkflow, // ✅ اضافه کردن گردش کار
+      currentWorkflowStep: 0, // ✅ مرحله فعلی
       createdBy: currentUser?.id || '',
       isArchived: false,
     } as any);
@@ -68,7 +96,7 @@ export function NewResolution() {
       </div>
 
       <Card>
-        <CardHeader><CardTitle>اطلاعات مصوبه</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="dark:text-white">اطلاعات مصوبه</CardTitle></CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
