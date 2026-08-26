@@ -36,29 +36,10 @@ export function NewResolution() {
       return;
     }
 
-    // ✅ ایجاد گردش کار پیش‌فرض
     const defaultWorkflow = [
-      {
-        id: `wf${Date.now()}_1`,
-        order: 1,
-        title: 'بررسی و تأیید اولیه',
-        assigneeId: currentUser?.id || '',
-        status: 'pending' as const,
-      },
-      {
-        id: `wf${Date.now()}_2`,
-        order: 2,
-        title: 'اجرا',
-        assigneeId: formData.assigneeIds[0] || '',
-        status: 'pending' as const,
-      },
-      {
-        id: `wf${Date.now()}_3`,
-        order: 3,
-        title: 'تأیید نهایی',
-        assigneeId: currentUser?.id || '',
-        status: 'pending' as const,
-      },
+      { id: `wf${Date.now()}_1`, order: 1, title: 'بررسی و تأیید اولیه', assigneeId: currentUser?.id || '', status: 'pending' as const },
+      { id: `wf${Date.now()}_2`, order: 2, title: 'اجرا', assigneeId: formData.assigneeIds[0] || '', status: 'pending' as const },
+      { id: `wf${Date.now()}_3`, order: 3, title: 'تأیید نهایی', assigneeId: currentUser?.id || '', status: 'pending' as const },
     ];
 
     addResolution({
@@ -72,13 +53,13 @@ export function NewResolution() {
       progressHistory: [],
       approvalHistory: [],
       timeline: [],
-      workflow: defaultWorkflow, // ✅ اضافه کردن گردش کار
-      currentWorkflowStep: 0, // ✅ مرحله فعلی
+      workflow: defaultWorkflow,
+      currentWorkflowStep: 0,
       createdBy: currentUser?.id || '',
       isArchived: false,
-    } as any);
+    });
 
-    alert(`✅ مصوبه ایجاد شد و اعلان برای ${formData.assigneeIds.length} نفر از مسئولین ارسال گردید`);
+    alert('✅ مصوبه با موفقیت ایجاد و اعلان ارسال شد');
     navigate('/resolutions');
   };
 
@@ -107,27 +88,20 @@ export function NewResolution() {
               <label className="block text-sm font-medium mb-1 dark:text-slate-300">توضیحات</label>
               <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={3} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:border-blue-500" />
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1 dark:text-slate-300">اقدام مورد انتظار</label>
-              <textarea value={formData.expectedAction} onChange={(e) => setFormData({ ...formData, expectedAction: e.target.value })} rows={2} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:border-blue-500" />
-            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1 dark:text-slate-300">اولویت *</label>
                 <select required value={formData.priority} onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:border-blue-500">
-                  <option value="low">کم</option>
-                  <option value="medium">متوسط</option>
-                  <option value="high">زیاد</option>
-                  <option value="critical">بحرانی</option>
+                  <option value="low">کم</option><option value="medium">متوسط</option><option value="high">زیاد</option><option value="critical">بحرانی</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1 dark:text-slate-300">تاریخ شروع *</label>
-                <input required type="text" value={formData.startDate} onChange={(e) => setFormData({ ...formData, startDate: e.target.value })} placeholder="1405/06/01" className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:border-blue-500" />
+                <input required type="text" value={formData.startDate} onChange={(e) => setFormData({ ...formData, startDate: e.target.value })} placeholder="1403/01/01" className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:border-blue-500" />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1 dark:text-slate-300">مهلت *</label>
-                <input required type="text" value={formData.dueDate} onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })} placeholder="1405/06/15" className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:border-blue-500" />
+                <input required type="text" value={formData.dueDate} onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })} placeholder="1403/01/15" className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:border-blue-500" />
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -146,17 +120,12 @@ export function NewResolution() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2 dark:text-slate-300">
-                مسئولین اجرا * ({toPersianNumber(formData.assigneeIds.length)} نفر انتخاب شده)
-              </label>
+              <label className="block text-sm font-medium mb-2 dark:text-slate-300">مسئولین اجرا * ({toPersianNumber(formData.assigneeIds.length)} نفر)</label>
               <div className="border border-slate-200 dark:border-slate-600 dark:bg-slate-700 rounded-lg p-3 max-h-64 overflow-y-auto">
                 {(users || []).map(user => (
                   <label key={user.id} className="flex items-center gap-2 py-2 px-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-600 rounded">
                     <input type="checkbox" checked={formData.assigneeIds.includes(user.id)} onChange={() => toggleAssignee(user.id)} className="rounded" />
-                    <div className="flex-1">
-                      <span className="text-sm font-medium dark:text-white">{user.firstName} {user.lastName}</span>
-                      <span className="text-xs text-slate-500 dark:text-slate-400 mr-2">({user.position})</span>
-                    </div>
+                    <span className="text-sm font-medium dark:text-white">{user.firstName} {user.lastName}</span>
                   </label>
                 ))}
               </div>

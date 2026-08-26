@@ -69,21 +69,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const logout = () => { storage.clearCurrentUser(); setCurrentUser(null); };
 
-  // ✅ تابع ثبت جلسه (اصلاح شده برای برگرداندن ID)
+  // ✅ تابع ثبت جلسه (تضمین تولید و بازگشت ID صحیح)
   const addMeeting = (meetingData: any): string => {
+    const newId = `m${Date.now()}`;
     const newMeeting = {
       ...meetingData,
-      id: `m${Date.now()}`,
+      id: newId,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
     const updatedMeetings = [...(meetings || []), newMeeting];
     setMeetings(updatedMeetings);
     storage.setMeetings(updatedMeetings);
-    return newMeeting.id; // برگرداندن ID برای مسیریابی
+    return newId; // بازگرداندن ID برای مسیریابی دقیق
   };
 
-  // ✅ تابع ثبت مصوبه
   const addResolution = (resData: any) => {
     const newRes = {
       ...resData,

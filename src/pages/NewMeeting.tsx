@@ -25,7 +25,6 @@ export function NewMeeting() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // ساختار داده‌ای که به AppContext فرستاده می‌شود
     const meetingData = {
       code: `MTG-${Date.now()}`,
       title: formData.title,
@@ -40,7 +39,7 @@ export function NewMeeting() {
       secretaryId: formData.secretaryId,
       status: 'scheduled',
       subject: formData.subject,
-      minuteRows: [], // در این نسخه ساده، مصوبات بعداً اضافه می‌شوند
+      minuteRows: [],
       attendeeGroups: [],
       generalNotes: '',
       attachments: [],
@@ -48,9 +47,8 @@ export function NewMeeting() {
       isArchived: false,
     };
 
-    // ✅ دریافت ID جلسه جدید از تابع addMeeting
+    // ✅ دریافت ID تولید شده از AppContext
     const newMeetingId = addMeeting(meetingData);
-    
     alert('✅ جلسه با موفقیت ثبت شد');
     
     // ✅ هدایت مستقیم به صفحه جزئیات همین جلسه
@@ -89,4 +87,41 @@ export function NewMeeting() {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1 dark:text-slate-300">ساعت شروع *</label>
-                <input required type="time" value={formData.startTime} onChange={(e) => setFormData({ ...formData, startTime: e.target.value })} className="w-full px-3 py-2 border border-slate-
+                <input required type="time" value={formData.startTime} onChange={(e) => setFormData({ ...formData, startTime: e.target.value })} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:border-blue-500" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 dark:text-slate-300">ساعت پایان</label>
+                <input type="time" value={formData.endTime} onChange={(e) => setFormData({ ...formData, endTime: e.target.value })} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:border-blue-500" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1 dark:text-slate-300">مکان *</label>
+              <input required type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:border-blue-500" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1 dark:text-slate-300">نوع جلسه *</label>
+                <select required value={formData.typeId} onChange={(e) => setFormData({ ...formData, typeId: e.target.value })} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:border-blue-500">
+                  {(meetingTypes || []).map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 dark:text-slate-300">واحد برگزارکننده *</label>
+                <select required value={formData.departmentId} onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })} className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white rounded-lg focus:border-blue-500">
+                  {(departments || []).map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="flex gap-3 pt-4">
+              <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+                <Save className="w-4 h-4 ml-2" />
+                ثبت نهایی جلسه
+              </Button>
+              <Button type="button" variant="outline" onClick={() => navigate('/meetings')}>انصراف</Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
