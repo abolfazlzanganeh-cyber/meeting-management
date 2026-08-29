@@ -69,31 +69,57 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const logout = () => { storage.clearCurrentUser(); setCurrentUser(null); };
 
-  // ✅ تابع ثبت جلسه (تضمین تولید و بازگشت ID صحیح)
+  // ✅ تابع ثبت جلسه با دیباگ کامل
   const addMeeting = (meetingData: any): string => {
+    console.log('🔵 شروع addMeeting');
+    console.log('🔵 داده ورودی:', meetingData);
+    
     const newId = `m${Date.now()}`;
+    console.log('🔵 ID تولید شده:', newId);
+    
     const newMeeting = {
       ...meetingData,
       id: newId,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
+    
+    console.log('🔵 جلسه جدید:', newMeeting);
+    
     const updatedMeetings = [...(meetings || []), newMeeting];
+    console.log('🔵 تعداد جلسات قبل:', meetings?.length || 0);
+    console.log('🔵 تعداد جلسات بعد:', updatedMeetings.length);
+    
     setMeetings(updatedMeetings);
     storage.setMeetings(updatedMeetings);
-    return newId; // بازگرداندن ID برای مسیریابی دقیق
+    
+    console.log('✅ جلسه با موفقیت اضافه شد. ID:', newId);
+    
+    return newId;
   };
 
+  // ✅ تابع ثبت مصوبه با دیباگ کامل
   const addResolution = (resData: any) => {
+    console.log('🔵 شروع addResolution');
+    console.log('🔵 داده ورودی:', resData);
+    
     const newRes = {
       ...resData,
       id: `r${Date.now()}`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
+    
+    console.log('🔵 مصوبه جدید:', newRes);
+    
     const updatedRes = [...(resolutions || []), newRes];
+    console.log('🔵 تعداد مصوبات قبل:', resolutions?.length || 0);
+    console.log('🔵 تعداد مصوبات بعد:', updatedRes.length);
+    
     setResolutions(updatedRes);
     storage.setResolutions(updatedRes);
+    
+    console.log('✅ مصوبه با موفقیت اضافه شد. ID:', newRes.id);
   };
 
   const updateResolution = (id: string, data: any) => {

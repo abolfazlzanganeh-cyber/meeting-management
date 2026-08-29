@@ -9,6 +9,9 @@ export function NewMeeting() {
   const navigate = useNavigate();
   const { meetingTypes, departments, users, currentUser, addMeeting } = useApp();
 
+  console.log('🔵 NewMeeting render');
+  console.log('🔵 addMeeting function:', addMeeting);
+
   const [formData, setFormData] = useState({
     title: '',
     subject: '',
@@ -24,6 +27,8 @@ export function NewMeeting() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🔵 شروع handleSubmit');
+    console.log('🔵 formData:', formData);
     
     const meetingData = {
       code: `MTG-${Date.now()}`,
@@ -47,12 +52,21 @@ export function NewMeeting() {
       isArchived: false,
     };
 
-    // ✅ دریافت ID تولید شده از AppContext
-    const newMeetingId = addMeeting(meetingData);
-    alert('✅ جلسه با موفقیت ثبت شد');
-    
-    // ✅ هدایت مستقیم به صفحه جزئیات همین جلسه
-    navigate(`/meetings/${newMeetingId}`);
+    console.log('🔵 meetingData آماده:', meetingData);
+    console.log('🔵 فراخوانی addMeeting...');
+
+    try {
+      const newMeetingId = addMeeting(meetingData);
+      console.log('✅ ID دریافت شده از addMeeting:', newMeetingId);
+      
+      alert('✅ جلسه با موفقیت ثبت شد');
+      
+      console.log('🔵 هدایت به صفحه جزئیات...');
+      navigate(`/meetings/${newMeetingId}`);
+    } catch (error) {
+      console.error('❌ خطا در ثبت جلسه:', error);
+      alert('❌ خطا در ثبت جلسه: ' + error.message);
+    }
   };
 
   return (
