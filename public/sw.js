@@ -1,52 +1,10 @@
-const CACHE_NAME = 'mms-v2';
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json'
-];
+const CACHE_NAME = 'mms-v4';
+const urlsToCache = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
+  self.skipWaiting(); // فعال‌سازی فوری نسخه جدید
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(urlsToCache))
-      .then(() => self.skipWaiting())
-  );
-});
-
-self.addEventListener('fetch', (event) => {
-  // فقط برای درخواست‌های GET
-  if (event.request.method !== 'GET') return;
-
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // اگر در cache بود، برگردان
-        if (response) {
-          return response;
-        }
-
-        // اگر نبود، سعی کن از شبکه بگیر
-        return fetch(event.request)
-          .then((response) => {
-            // اگر پاسخ موفق بود، آن را cache کن
-            if (response && response.status === 200) {
-              const responseToCache = response.clone();
-              caches.open(CACHE_NAME)
-                .then((cache) => {
-                  cache.put(event.request, responseToCache);
-                });
-            }
-            return response;
-          })
-          .catch(() => {
-            // اگر شبکه هم کار نکرد، برای درخواست‌های navigation، index.html را برگردان
-            if (event.request.mode === 'navigate') {
-              return caches.match('/index.html');
-            }
-            // برای سایر درخواست‌ها، null برگردان
-            return new Response('Network error', { status: 408, headers: { 'Content-Type': 'text/plain' } });
-          });
-      })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
   );
 });
 
@@ -54,9 +12,29 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name))
+        cacheNames.filter((name) => name !== CACHE_NAME).map((name) => caches.delete(name))
       );
-    }).then(() => self.clients.claim())
+    }).then(() => self.clients.claim()) // کنترل فوری تمام تب‌های باز
+  );
+});
+
+self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      return fetch(event.request).catch(() => {
+        // ✅ اگر درخواست مربوط به بارگذاری یک صفحه (HTML) باشد، فایل اصلی را برگردان تا React Router کار کند
+        if (event.request.headers.get('accept')?.includes('text/html')) {
+          return caches.match('/index.html');
+        }
+        // در غیر این صورت، یک پاسخ ساده برگردان
+        return new Response('Offline', { status: 503, statusText: 'Offline' });
+      });
+    })
   );
 });
